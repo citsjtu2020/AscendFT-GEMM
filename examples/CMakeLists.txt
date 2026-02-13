@@ -68,6 +68,9 @@ if(DEFINED ENABLE_ASCENDC_DUMP AND ENABLE_ASCENDC_DUMP)
 endif()
 
 foreach(EXAMPLE
+     03_matmul_add_self_preload_fp16
+     03_matmul_add_self_preload_bf16
+     03_matmul_add_self_preload_fp32
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp16_small_simple_inited
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp16_medium_simple_inited
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp16_medium_robust_inited
