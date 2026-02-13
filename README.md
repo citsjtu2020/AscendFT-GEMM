@@ -18,7 +18,9 @@ Currently, our work supports the Ascend 910B/910C NPU devices on the Atlas A2/A3
 #### 2) install the software environment
 Our work is recommended running at the CANN 8.2.1 environments. Please download the source at [Ascend resouce download center](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1.alpha003), and find the toolkit and kernel package as follows:
 
-![Figure 1: Required Package In the List](./docs/images/software_environment.png "Figure 1: Required Package In the List")
+![Figure 1: Required Package In the List](./docs/images/software_environment.png )
+*Figure 1: Required Package In the List*
+
 
 
 
