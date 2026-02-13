@@ -72,7 +72,8 @@ bash scripts/build.sh 03_matmul_add_self_preload_fp32
 
 #### 1.2 Run Code
 
-a) Params: 03_matmul_add m n k [device_id, make_golden]
+a) Params:
+
 | Item | Discription | Rquired/Optional|
 |------|------------|------------|
 | m | outer row dimension size|Rquired|
@@ -80,6 +81,13 @@ a) Params: 03_matmul_add m n k [device_id, make_golden]
 | k | reduction dimension size |Rquired|
 | device_id | ID of NPU card,0~7 |Optional|
 | make_golden | 1: completely validate the correctness of each element; 0: validate the correctness of row checksum |Optional|
+
+b) Run the examples (Row-checksum validation):
+cd output/bin/
+
+./03_matmul_add_self_preload_fp32 1024 1024 4096 1 0
+
+Results:
 
 
 
