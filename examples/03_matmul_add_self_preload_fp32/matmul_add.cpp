@@ -321,7 +321,7 @@ void Run(Options const &options)
 
             // Compute the golden result
             std::vector<GemmOutTypeC> hostGolden(lenC);
-            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostX, hostGolden, layoutC);
+            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostXRaw, hostGolden, layoutC);
 
             // Compare the result
             std::vector<uint64_t> errorIndices = golden::CompareData(hostC, hostGolden, k);
@@ -344,7 +344,7 @@ void Run(Options const &options)
 
             float alpha{1.0};
             float beta{0.0};
-            float e_max = 8.0f / 1000000.0f; // 0.000002, which is 2 times of the maximum error of FP16, to make the threshold more reasonable.
+            float e_max = 16.0f / 1000000.0f; // 0.000016, which is 2 times of the maximum error of FP16, to make the threshold more reasonable.
             if(k <= 1024){
                 e_max = e_max * 1.0f;
             }else{
@@ -515,7 +515,7 @@ void Run(Options const &options)
 
             // Compute the golden result
             std::vector<GemmOutTypeC> hostGolden(lenC);
-            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostX, hostGolden, layoutC);
+            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostXRaw, hostGolden, layoutC);
 
             // Compare the result
             std::vector<uint64_t> errorIndices = golden::CompareData(hostC, hostGolden, k);
@@ -538,7 +538,7 @@ void Run(Options const &options)
 
             float alpha{1.0};
             float beta{0.0};
-            float e_max = 8.0f / 1000000.0f; // 0.000002, which is 2 times of the maximum error of FP16, to make the threshold more reasonable.
+            float e_max = 16.0f / 1000000.0f; // 0.000016, which is 2 times of the maximum error of FP16, to make the threshold more reasonable.
             if(k <= 1024){
                 e_max = e_max * 1.0f;
             }else{

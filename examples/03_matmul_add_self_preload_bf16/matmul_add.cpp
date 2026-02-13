@@ -321,7 +321,7 @@ void Run(Options const &options)
 
             // Compute the golden result
             std::vector<GemmOutTypeC> hostGolden(lenC);
-            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostX, hostGolden, layoutC);
+            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostXRaw, hostGolden, layoutC);
 
             // Compare the result
             std::vector<uint64_t> errorIndices = golden::CompareData(hostC, hostGolden, k);
@@ -515,7 +515,7 @@ void Run(Options const &options)
 
             // Compute the golden result
             std::vector<GemmOutTypeC> hostGolden(lenC);
-            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostX, hostGolden, layoutC);
+            golden::ComputeMatmulElemWiseAdd(options.problemShape, hostA, layoutA, hostB, layoutB, hostXRaw, hostGolden, layoutC);
 
             // Compare the result
             std::vector<uint64_t> errorIndices = golden::CompareData(hostC, hostGolden, k);
