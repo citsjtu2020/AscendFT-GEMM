@@ -893,7 +893,8 @@ void Run(Options options) {
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
-        use_emax = use_emax * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
+        use_emax = use_emax * 1.0f;
+        // * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
     }
 
     typename MatmulFTKernel::Arguments arguments{
