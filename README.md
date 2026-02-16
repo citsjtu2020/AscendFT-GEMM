@@ -97,7 +97,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="soft_source">
+  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="ascend_GEMM_fp32_rowsum">
   <br>
   <em>Figure 2: Ascend-GEMM results (FP32) validated by row checksum</em>
 </div>
@@ -113,7 +113,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="soft_source">
+  <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="ascend_GEMM_fp32_element_wise">
   <br>
   <em>Figure 3: Ascend-GEMM results (FP32) validated by element-wise compare</em>
 </div>
@@ -128,7 +128,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="soft_source">
+  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="ascend_GEMM_bf16_rowsum">
   <br>
   <em>Figure 4: Ascend-GEMM results (BF16) validated by row checksum</em>
 </div>
@@ -143,7 +143,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="soft_source">
+  <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="ascend_GEMM_bf16_element_wise">
   <br>
   <em>Figure 5: Ascend-GEMM results (BF16) validated by element-wise compare</em>
 </div>
@@ -213,7 +213,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/AscendFT-GEMM-fp32-rowsum.png" alt="soft_source">
+  <img src="./docs/images/AscendFT-GEMM-fp32-rowsum.png" alt="ascendFT_GEMM_fp32_ABFT">
   <br>
   <em>Figure 6: AscendFT-GEMM results (FP32) validated by row-checksum-based ABFT</em>
 </div>
@@ -228,10 +228,11 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/AscendFT-GEMM-bf16-rowsum.png" alt="soft_source">
+  <img src="./docs/images/AscendFT-GEMM-bf16-rowsum.png" alt="ascendFT_GEMM_bf16_ABFT">
   <br>
   <em>Figure 7: AscendFT-GEMM results (BF16) validated by row-checksum-based ABFT</em>
 </div>
+
 
 
 
