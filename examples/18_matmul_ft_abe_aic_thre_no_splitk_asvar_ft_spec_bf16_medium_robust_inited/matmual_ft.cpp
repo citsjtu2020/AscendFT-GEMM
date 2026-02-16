@@ -889,6 +889,12 @@ void Run(Options options) {
         bool outputThre; bool outputCE; uint32_t SplitKNum;
     };
     */
+    float use_emax = options.e_max * 3.0f;
+    if(k <= 1024){
+        use_emax = use_emax * 1.0f;
+    }else{
+        use_emax = use_emax * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
+    }
 
     typename MatmulFTKernel::Arguments arguments{
         options.problemGemmShape, options.problemShape, sizeof(GemvInTypeCforAB), 
@@ -900,7 +906,7 @@ void Run(Options options) {
         deviceVXforAe, deviceAMean, deviceAMax, deviceAMin,
         deviceThre, FT_ENC_TYPE::RCE, 1, false, threshold,
         options.round_exp, options.beta, 
-        options.e_max, options.reduce_cores, 
+        use_emax, options.reduce_cores, 
         rce_thre_type,true,true, options.split_ks};
 
     // Prepare FFTS address
@@ -911,6 +917,8 @@ void Run(Options options) {
     matmul_op.CanImplement(arguments);
 
     size_t sizeWorkspace = matmul_op.GetWorkspaceSize(arguments);
+    uint32_t lenWork = ((splitNnum + 1) * options.problemGemmShape.m() * options.split_ks);
+    std::vector<GemvOutTypeC> hostWork(lenWork, (GemvOutTypeC)0.0f);
     uint8_t *deviceWorkspace = nullptr;
     if (sizeWorkspace > 0) {
         ACL_CHECK(
@@ -920,6 +928,7 @@ void Run(Options options) {
 
     // RunAdapter(matmul_op, arguments, stream, aicCoreNum, fftsAddr);
     matmul_op.Initialize(arguments, deviceWorkspace);
+
 
     matmul_op(stream, aicCoreNum, fftsAddr);
     ACL_CHECK(aclrtSynchronizeStream(stream));
@@ -948,6 +957,8 @@ void Run(Options options) {
     ACL_CHECK(aclrtMemcpy(hostAMax.data(), sizeAMax, deviceAMax, sizeAMax, ACL_MEMCPY_DEVICE_TO_HOST));
     ACL_CHECK(aclrtMemcpy(hostAMean.data(), sizeAMean, deviceAMean, sizeAMean, ACL_MEMCPY_DEVICE_TO_HOST));
     ACL_CHECK(aclrtMemcpy(hostAMin.data(), sizeAMin, deviceAMin, sizeAMin, ACL_MEMCPY_DEVICE_TO_HOST));
+
+    ACL_CHECK(aclrtMemcpy(hostWork.data(), sizeWorkspace, deviceWorkspace, sizeWorkspace, ACL_MEMCPY_DEVICE_TO_HOST));
    
     std::vector<GemvOutTypeC> hostGoldenCRow(lenZRow, (GemvOutTypeC)0.0f);
     std::vector<GemvOutTypeC> hostGoldenRow(lenZRow, (GemvOutTypeC)0.0f);
@@ -961,6 +972,8 @@ void Run(Options options) {
 
     GemvCoord BESliceShape{1, L1TileShape::N};
     printf("BESliceShape: {%d,%d}\n", BESliceShape.m(), BESliceShape.n());
+    printf("First Slice Workspace ABE element: %f\n", hostWork[0]);
+    printf("Second Slice Workspace ABE element: %f\n", hostWork[(uint32_t)splitNnum * options.problemGemmShape.m()]);
 
     golden::ComputeGemvSlice(options.problemShape, BESliceShape, alpha, beta,
          hostC, layoutC, hostX, layoutXRow, hostGoldenCRow, layoutZHost, hostGoldenCRow);
@@ -1056,8 +1069,7 @@ void Run(Options options) {
 
     for(int j=0; j < splitNnum; j++){
         printf("Expect B Mean square[%d]: %f\n",j,hostBMeanSquareGolden[j]);
-        printf("Actual B Mean square[%d]: %f\n",j,hostBMeanSquare[j]);
-        
+        printf("Actual B Mean square[%d]: %f\n",j,hostBMeanSquare[j]);     
     }
 
     if (errorIndices.empty()) {
@@ -1092,23 +1104,24 @@ void Run(Options options) {
 
     /*
     void ComputeThresholdsASVARRobustTSlice(
-    const Catlass::GemvCoord &problemShape,
-    uint32_t splitNnum,
-    const std::vector<ElementX> &dataBMeanabs,
-    const std::vector<ElementX> &dataBMeanSquare,
-    const std::Vector<ElementX> &dataBVar,
-    uint32_t B_N_size, uint32_t B_N_tile,
-    const std::vector<ElementA> &dataA, const LayoutA &layoutA,
-    std::vector<ElementGolden> &dataAMean,
-    std::vector<ElementGolden> &dataAMax,
-    std::vector<ElementGoldent> &dataAMin,
-    std::vector<ElementGolden> &dataAStd,
-    std::vector<ElementGolden> &dataAMeanAbs,
-    std::vector<ElementGolden> &dataGolden, 
-    float e_max,
-    Catlass::Gemv::helper::FT_RCE_THRE_TYPE rce_thre_type 
-)
+        const Catlass::GemvCoord &problemShape,
+        uint32_t splitNnum,
+        const std::vector<ElementX> &dataBMeanabs,
+        const std::vector<ElementX> &dataBMeanSquare,
+        const std::Vector<ElementX> &dataBVar,
+        uint32_t B_N_size, uint32_t B_N_tile,
+        const std::vector<ElementA> &dataA, const LayoutA &layoutA,
+        std::vector<ElementGolden> &dataAMean,
+        std::vector<ElementGolden> &dataAMax,
+        std::vector<ElementGoldent> &dataAMin,
+        std::vector<ElementGolden> &dataAStd,
+        std::vector<ElementGolden> &dataAMeanAbs,
+        std::vector<ElementGolden> &dataGolden, 
+        float e_max,
+        Catlass::Gemv::helper::FT_RCE_THRE_TYPE rce_thre_type 
+    )
     */
+    
     golden::ComputeThresholdsASVARRobustTSlice(
         problemShapeABE, splitNnum,
         hostBMeanAbsGolden, hostBMeanSquareGolden, hostBVarGolden,
@@ -1140,7 +1153,7 @@ void Run(Options options) {
     std::vector<float> totalErrorDataRow;
     std::vector<float> totalFailThresholds;
 
-    errorIndices = golden::CompareData(hostAMeanGolden, hostAMeanGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMean, hostAMeanGolden, options.problemShape.m());
 
     for(int j=0; j < splitNnum; j++){
         printf("Expect A Mean[%d]: %f\n",j,hostAMeanGolden[j]);
@@ -1153,7 +1166,7 @@ void Run(Options options) {
         std::cerr << "A Reduce Mean Compare failed." << std::endl;
     }
     
-    errorIndices = golden::CompareData(hostAMaxGolden, hostAMaxGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMax, hostAMaxGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Max Compare success." << std::endl;
@@ -1166,7 +1179,7 @@ void Run(Options options) {
     //     printf("Actual A Max[%d]: %f\n",j,hostAMax[j]);
     // }
 
-    errorIndices = golden::CompareData(hostAMinGolden, hostAMinGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMin, hostAMinGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Min Compare success." << std::endl;

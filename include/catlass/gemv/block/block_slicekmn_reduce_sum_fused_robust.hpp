@@ -1070,7 +1070,7 @@ public:
         uint32_t Nloop = CeilDiv(actualShape.n(), TileNRound);
         for (uint32_t LoopIdx = 0; LoopIdx < Nloop; LoopIdx++) {
             m_actual = (actualShape.m() < TileMRound) ? actualShape.m() : TileMRound;
-            n_actual = (LoopIdx == Nloop - 1) ? (actualShape.n() - LoopIdx * TileNRound) : TileNRound;
+            n_actual = (LoopIdx == (Nloop - 1)) ? (actualShape.n() - LoopIdx * TileNRound) : TileNRound;
             y_actual = m_actual;
             x_actual = n_actual;
 
@@ -1079,7 +1079,7 @@ public:
                 uint32_t LoopIdxNext = LoopIdx + 1;
                 uint32_t m_actual_next = m_actual;
                 uint32_t n_actual_next =
-                    (LoopIdxNext == Nloop - 1) ? (actualShape.n() - LoopIdxNext * TileNRound) : TileNRound;
+                    (LoopIdxNext == (Nloop - 1)) ? (actualShape.n() - LoopIdxNext * TileNRound) : TileNRound;
                 uint32_t y_actual_next = m_actual_next;
                 uint32_t x_actual_next = n_actual_next;
                 // Get L1 tensor for next stage

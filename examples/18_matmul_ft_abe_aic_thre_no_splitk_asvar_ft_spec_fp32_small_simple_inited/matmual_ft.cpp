@@ -900,6 +900,13 @@ void Run(Options options) {
     };
     */
 
+    float use_emax = options.e_max * 3.0f;
+    if(k <= 1024){
+        use_emax = use_emax * 1.0f;
+    }else{
+        use_emax = use_emax * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
+    }
+
     typename MatmulFTKernel::Arguments arguments{
         options.problemGemmShape, options.problemShape, sizeof(GemvInTypeCforAB), 
         deviceX, deviceXV, deviceA, deviceB, deviceC, 
@@ -910,7 +917,7 @@ void Run(Options options) {
         deviceVXforAe, deviceAMean, deviceAMax, deviceAMin,
         deviceThre, FT_ENC_TYPE::RCE, 1, false, threshold,
         options.round_exp, options.beta, 
-        options.e_max, options.reduce_cores, 
+        use_emax, options.reduce_cores, 
         rce_thre_type,true,true, options.split_ks, options.useLogRatio};
     
     // true

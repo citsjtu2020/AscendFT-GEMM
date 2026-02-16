@@ -85,8 +85,10 @@ using namespace Catlass;
 using fp16_t = op::fp16_t;
 using op_bfloat16 = op::bfloat16;
 
-using GemmInTypeC = op_bfloat16;
-using GemmInTypeN = bfloat16_t;
+using GemmInTypeC = float;
+// op_bfloat16;
+using GemmInTypeN = float;
+// bfloat16_t;
 
 using GemmOutTypeC = float;
 using GemmOutTypeN = float;
@@ -96,8 +98,10 @@ using GemvInTypeCforCE = float;
 using GemvInTypeNforCE = float;
 // bfloat16_t;
 
-using GemvInTypeCforAB = op_bfloat16;
-using GemvInTypeNforAB = bfloat16_t;
+using GemvInTypeCforAB = float;
+// op_bfloat16;
+using GemvInTypeNforAB = float;
+// bfloat16_t;
 
 using GemvOutTypeC = float;
 using GemvOutTypeN = float;
@@ -202,8 +206,8 @@ void Run(Options options) {
 
     std::cout<<"Device ID: "<<options.deviceId<<std::endl;
 
-    using L1TileShape = GemmShape<128, 256, 256>;
-    using L0TileShape = GemmShape<128, 256, 64>;
+    using L1TileShape = GemmShape<128, 256, 128>;
+    using L0TileShape = GemmShape<128, 256, 32>;
     // 64
 
     static constexpr uint32_t BYTE_FOR_EACH_BLK = 32;
@@ -285,6 +289,7 @@ void Run(Options options) {
     size_t sizeAMean = lenARed * sizeof(GemvOutTypeC);
     size_t sizeAMax = lenARed * sizeof(GemvOutTypeC);
     size_t sizeAMin = lenARed * sizeof(GemvOutTypeC);
+
 
     using LayoutX = layout::VectorLayout;
     using LayoutY = layout::VectorLayout;
@@ -503,8 +508,8 @@ void Run(Options options) {
     using L1TileShapeAB = GemmShape<128, 128, 128>;
     using L0TileShapeAB = GemmShape<128, 128, 128>;
 
-    using L1TileShapeBE = GemvShape<256, 256>;
-    using L0TileShapeBE = GemvShape<256, 64>;
+    using L1TileShapeBE = GemvShape<64, 256>;
+    using L0TileShapeBE = GemvShape<64, 64>;
 
     using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*1>;
     // using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*2>;
@@ -530,7 +535,7 @@ void Run(Options options) {
     /*
     struct BlockFTGemvBe<
     Gemm::MmadAtlasA2Preload<ENABLE_UNIT_FLAG_, ENABLE_SHUFFLE_K_>,
-    Gemv::helper::FT_AIC_BE_SCHEME::ROWCOMPLETE_BF,
+    Gemv::helper::FT_AIC_BE_SCHEME::ROWCOMPLETE,
     UBBlockShape_,
     L1TileShape_,
     L0TileShape_,
@@ -545,7 +550,7 @@ void Run(Options options) {
     // FT_AIC_BE_SCHEME::COLCOMPLETE,
     // FT_AIC_BE_SCHEME::ROWCOMPLETE,
     using BlockFTGemvAIC = Gemv::Block::BlockFTGemvBe<BeAICDispatchPolicy, 
-        FT_AIC_BE_SCHEME::ROWCOMPLETE_BF,
+        FT_AIC_BE_SCHEME::ROWCOMPLETE,
         UBBlockShapeBE, L1TileShapeBE, L0TileShapeBE, 
         BType, XTypeAIC, YTypeBEAIC, BiasType, TileCopyGemvAic, TileMmadGemvAic>;
 
@@ -566,14 +571,14 @@ void Run(Options options) {
     // using L1TileShape = GemmShape<128, 240, 256>;
     // using L0TileShape = GemmShape<128, 240, 64>;
 
-    using L1TileShapeFirst = GemmShape<256,256,256>;
-    using L0TileShapeFirst = GemmShape<256,256,64>;
+    using L1TileShapeFirst = GemmShape<256,256,128>;
+    using L0TileShapeFirst = GemmShape<256,256,32>;
 
-    // using L1TileShapeforFT = GemmShape<L1TileShapeFirst::M, 16, L1TileShapeFirst::K>;
-    // using L0TileShapeforFT = GemmShape<L0TileShapeFirst::M, 16, L0TileShapeFirst::K>;
+    using L1TileShapeforFT = GemmShape<L1TileShapeFirst::M, 16, L1TileShapeFirst::K>;
+    using L0TileShapeforFT = GemmShape<L0TileShapeFirst::M, 16, L0TileShapeFirst::K>;
 
-    using L1TileShapeforFT = GemmShape<L1TileShapeFirst::M, 32, L1TileShapeFirst::K>;
-    using L0TileShapeforFT = GemmShape<L0TileShapeFirst::M, 32, L0TileShapeFirst::K>;
+    // using L1TileShapeforFT = GemmShape<L1TileShapeFirst::M, 32, L1TileShapeFirst::K>;
+    // using L0TileShapeforFT = GemmShape<L0TileShapeFirst::M, 32, L0TileShapeFirst::K>;
 
     /*
     using LayoutMY = layout::RowMajor;
@@ -646,10 +651,10 @@ void Run(Options options) {
     using TileFaultCopyRedAiv = Gemv::Tile::TileCopyFTRedAiv<ArchTag, 
         AType, BType, YType, ZType>;
 
-    using UBTileShapeforB = GemvShape<48, L0TileShape::N>;
+    using UBTileShapeforB = GemvShape<32, L0TileShape::N>;
     using UBBlockShapeforB = GemvShape<UBTileShapeforB::M*2, UBTileShapeforB::N*2>;
 
-    using UBTileShapeforA = GemvShape<48, 256>;
+    using UBTileShapeforA = GemvShape<32, 256>;
 
     using ARedType = Gemm::GemmType<GemvInTypeNforCE, LayoutA>;
     using TileFaultSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::MAX_MIN, ARedType, ZType>;
@@ -658,7 +663,7 @@ void Run(Options options) {
     struct BlockFTSumNoSplitK <
     Gemm::GemvAtlasA2,
     Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
-    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED_BF,
+    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
     UBTileShapeforB_,
     UBBlockShapeforB_,
     UBTileShapeforA_,
@@ -676,14 +681,14 @@ void Run(Options options) {
     using BlockFTSum = Gemv::Block::BlockFTSumNoSplitK<
         GemvDispatchPolicy,
         Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
-        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED_BF,
+        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
         UBTileShapeforB, UBBlockShapeforB, UBTileShapeforA,
         L1TileShape, AType, BType, YType, ZType, void,
         TileFaultCopyRedAiv, TileFaultSum>;
 
     using SliceSumDispatchPolicy = Gemm::GemvAtlasA2;
 
-    using SliceSumUBTileShape = GemvShape<16, 256>;
+    using SliceSumUBTileShape = GemvShape<8, 256>;
     using TileMatrixAddforABEReduce = Gemv::Tile::TileMatmulAdd<
         typename SliceSumDispatchPolicy::ArchTag, MYType, MYType, void>;
     using TileCopyMatrixAddforABEReduce = Gemv::Tile::TileCopyMatrixAddAiv<
@@ -1148,7 +1153,7 @@ void Run(Options options) {
     std::vector<float> totalErrorDataRow;
     std::vector<float> totalFailThresholds;
 
-    errorIndices = golden::CompareData(hostAMeanGolden, hostAMeanGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMean, hostAMeanGolden, options.problemShape.m());
 
     for(int j=0; j < splitNnum; j++){
         printf("Expect A Mean[%d]: %f\n",j,hostAMeanGolden[j]);
@@ -1161,7 +1166,7 @@ void Run(Options options) {
         std::cerr << "A Reduce Mean Compare failed." << std::endl;
     }
     
-    errorIndices = golden::CompareData(hostAMaxGolden, hostAMaxGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMax, hostAMaxGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Max Compare success." << std::endl;
@@ -1174,7 +1179,7 @@ void Run(Options options) {
     //     printf("Actual A Max[%d]: %f\n",j,hostAMax[j]);
     // }
 
-    errorIndices = golden::CompareData(hostAMinGolden, hostAMinGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMin, hostAMinGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Min Compare success." << std::endl;

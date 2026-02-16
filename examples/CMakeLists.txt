@@ -83,6 +83,7 @@ foreach(EXAMPLE
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_large_robust_inited
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_medium_robust_inited
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_small_simple_inited
+    18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_small_robust_inited
     )
     add_subdirectory(${EXAMPLE})
 endforeach()

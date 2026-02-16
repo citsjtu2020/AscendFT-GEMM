@@ -161,6 +161,7 @@ public:
     using SliceSumUBTileShape = typename BlockSliceRed::UBTileShapeforA;
 
     using UBAlignHelper = Catlass::Gemv::helper::UBAlignHelper<ElementA>;
+    using UBAlignHelperOut = Catlass::Gemv::helper::UBAlignHelper<ElementZ>;
 
     using COMPUBTileShape = typename BlockFTGemvAIV::ThreCalcUBTileShapeTotal;
 
@@ -1331,13 +1332,13 @@ public:
 
         uint32_t UBTileSplitM = params.SplitReduceM;
         // RoundUp(UBTileShapeBReduce::M, UBAlignHelper::ALIGN);
-        uint32_t UBTileNRound = RoundUp(params.SplitReduceN, UBAlignHelper::ALIGN);
+        uint32_t UBTileNRound = RoundUp(params.SplitReduceN, UBAlignHelperOut::ALIGN);
 
         uint32_t Reduce_M_size = params.SplitNnum;
         uint32_t loopsNumforB = CeilDiv((Reduce_M_size - 1), UBTileSplitM);
 
-        uint32_t UBTileMRoundforABE = RoundUp(SliceSumUBTileShape::M, UBAlignHelper::ALIGN);
-        uint32_t UBTileNRoundforABE = RoundUp(SliceSumUBTileShape::N, UBAlignHelper::ALIGN);
+        uint32_t UBTileMRoundforABE = RoundUp(SliceSumUBTileShape::M, UBAlignHelperOut::ALIGN);
+        uint32_t UBTileNRoundforABE = RoundUp(SliceSumUBTileShape::N, UBAlignHelperOut::ALIGN);
 
         uint32_t ABE_M_size = params.SplitNnum;
         uint32_t ABE_N_size = params.problemGemmShape.m();
@@ -1611,32 +1612,32 @@ public:
 
         Catlass::MatrixCoord loopsMN = matmulBlockScheduler.loopsMN;
 
-        uint32_t UBTileMRound = RoundUp(UBTileShapeCE::M, UBAlignHelper::ALIGN);
-        uint32_t UBTileKRound = RoundUp(UBTileShapeCE::N, UBAlignHelper::ALIGN);
+        uint32_t UBTileMRound = RoundUp(UBTileShapeCE::M, UBAlignHelperOut::ALIGN);
+        uint32_t UBTileKRound = RoundUp(UBTileShapeCE::N, UBAlignHelperOut::ALIGN);
 
-        uint32_t UBBlockMRound = RoundUp(UBBlockShapeCE::M, UBAlignHelper::ALIGN);
-        uint32_t UBBlockKRound = RoundUp(UBBlockShapeCE::N, UBAlignHelper::ALIGN);
+        uint32_t UBBlockMRound = RoundUp(UBBlockShapeCE::M, UBAlignHelperOut::ALIGN);
+        uint32_t UBBlockKRound = RoundUp(UBBlockShapeCE::N, UBAlignHelperOut::ALIGN);
 
         uint32_t element_num = params.problemGemmShape.m();
 
         uint32_t ThreUBTileMRound = UBTileMRound;
-        uint32_t ThreUBTileNRound = RoundUp(L0TileShape::N, UBAlignHelper::ALIGN);
+        uint32_t ThreUBTileNRound = RoundUp(L0TileShape::N, UBAlignHelperOut::ALIGN);
 
         uint32_t ThreUBBlockMRound = UBBlockMRound;
-        uint32_t ThreUBBlockNRound = RoundUp(L1TileShape::N, UBAlignHelper::ALIGN);
+        uint32_t ThreUBBlockNRound = RoundUp(L1TileShape::N, UBAlignHelperOut::ALIGN);
 
         if(FUSE_TYPE == FT_AIV_PIPE_FUSE_TYPE::ABE_FUSED_THRE){
             ThreUBTileMRound = UBTileMRound;
-            ThreUBTileNRound = RoundUp(L0TileShape::N, UBAlignHelper::ALIGN);
+            ThreUBTileNRound = RoundUp(L0TileShape::N, UBAlignHelperOut::ALIGN);
 
             ThreUBBlockMRound = UBBlockMRound;
-            ThreUBBlockNRound = RoundUp(L1TileShape::N, UBAlignHelper::ALIGN);
+            ThreUBBlockNRound = RoundUp(L1TileShape::N, UBAlignHelperOut::ALIGN);
         }else{
-            ThreUBTileMRound = RoundUp(ThreCalcUBTileShape::M, UBAlignHelper::ALIGN);
-            ThreUBTileNRound = RoundUp(ThreCalcUBTileShape::N, UBAlignHelper::ALIGN);
+            ThreUBTileMRound = RoundUp(ThreCalcUBTileShape::M, UBAlignHelperOut::ALIGN);
+            ThreUBTileNRound = RoundUp(ThreCalcUBTileShape::N, UBAlignHelperOut::ALIGN);
 
-            ThreUBBlockMRound = RoundUp(ThreCalcUBBlockShape::M, UBAlignHelper::ALIGN);
-            ThreUBBlockNRound = RoundUp(ThreCalcUBBlockShape::N, UBAlignHelper::ALIGN);
+            ThreUBBlockMRound = RoundUp(ThreCalcUBBlockShape::M, UBAlignHelperOut::ALIGN);
+            ThreUBBlockNRound = RoundUp(ThreCalcUBBlockShape::N, UBAlignHelperOut::ALIGN);
         }
         
         uint32_t ThreUBBlockZRound = ThreUBBlockMRound / 8;
@@ -1810,8 +1811,8 @@ public:
 
         // Get aicore information
 
-        uint32_t UBTileMRound = RoundUp(SliceSumUBTileShape::M, UBAlignHelper::ALIGN);
-        uint32_t UBTileNRound = RoundUp(SliceSumUBTileShape::N, UBAlignHelper::ALIGN);
+        uint32_t UBTileMRound = RoundUp(SliceSumUBTileShape::M, UBAlignHelperOut::ALIGN);
+        uint32_t UBTileNRound = RoundUp(SliceSumUBTileShape::N, UBAlignHelperOut::ALIGN);
 
         uint32_t Reduce_M_size = params.SplitNnum;
         uint32_t Reduce_N_size = params.problemGemmShape.m();

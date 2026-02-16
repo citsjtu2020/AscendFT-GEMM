@@ -1213,6 +1213,7 @@ struct TileReduce<Arch::AtlasA2,
         uint64_t mean_mask = dst_repeat_size;
         uint64_t var_mask = dst_repeat_size;
         uint64_t sub_mask = dst_repeat_size;
+        uint64_t abs_mask = dst_repeat_size;
 
         AscendC::UnaryRepeatParams mean_params;
         mean_params.dstBlkStride = 1;
@@ -1237,6 +1238,12 @@ struct TileReduce<Arch::AtlasA2,
         sub_params.dstRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
         sub_params.src0RepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
         sub_params.src1RepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
+
+        AscendC::UnaryRepeatParams abs_params;
+        abs_params.dstBlkStride = 1;
+        abs_params.srcBlkStride = 1;
+        abs_params.dstRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
+        abs_params.srcRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
 
         AscendC::Duplicate<ElementY>(
                 red_workspace,
@@ -1293,6 +1300,22 @@ struct TileReduce<Arch::AtlasA2,
                 sub_params);
             
             AscendC::PipeBarrier<PIPE_V>();     
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMaxTensor[offset],
+            //     srcMaxTensor[offset],
+            //     abs_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMinTensor[offset],
+            //     srcMinTensor[offset],
+            //     abs_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::PipeBarrier<PIPE_V>(); 
             /*
             template <typename T, typename U, bool isSetMask = true>
             __aicore__ inline void MulAddDst(
@@ -1351,6 +1374,22 @@ struct TileReduce<Arch::AtlasA2,
                 sub_params);
             
             AscendC::PipeBarrier<PIPE_V>();  
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMaxTensor[offset],
+            //     srcMaxTensor[offset],
+            //     remain_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMinTensor[offset],
+            //     srcMinTensor[offset],
+            //     remain_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::PipeBarrier<PIPE_V>(); 
             
             AscendC::MulAddDst<ElementY, ElementA, true>(
                 red_workspace,
@@ -1395,13 +1434,19 @@ struct TileReduce<Arch::AtlasA2,
         var_params.src0RepStride = 8;
         var_params.src1RepStride = 8;
         
-        AscendC::Add<ElementY, true>(
+        // AscendC::Add<ElementY, true>(
+        //     dstTensorVar,
+        //     red_workspace,
+        //     dstTensorVar,
+        //     final_add_mask,
+        //     CeilDiv(m_round, dst_repeat_size),
+        //     var_params);
+
+        AscendC::Add<ElementY>(
             dstTensorVar,
             red_workspace,
             dstTensorVar,
-            final_add_mask,
-            CeilDiv(m_round, dst_repeat_size),
-            var_params);
+            final_add_mask);
 
         AscendC::PipeBarrier<PIPE_V>();
     }
@@ -1471,12 +1516,19 @@ struct TileReduce<Arch::AtlasA2,
         uint64_t mean_mask = dst_repeat_size;
         uint64_t var_mask = dst_repeat_size;
         uint64_t sub_mask = dst_repeat_size;
+        uint64_t abs_mask = dst_repeat_size;
 
         AscendC::UnaryRepeatParams mean_params;
         mean_params.dstBlkStride = 1;
         mean_params.srcBlkStride = 1;
         mean_params.dstRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
         mean_params.srcRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
+
+        AscendC::UnaryRepeatParams abs_params;
+        abs_params.dstBlkStride = 1;
+        abs_params.srcBlkStride = 1;
+        abs_params.dstRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
+        abs_params.srcRepStride = RoundUp(n_round, dst_repeat_size) / ELE_NUM_PER_C0;
 
         AscendC::BinaryRepeatParams var_params;
         var_params.dstBlkStride = 1;
@@ -1550,7 +1602,31 @@ struct TileReduce<Arch::AtlasA2,
                 m_actual,
                 sub_params);
             
-            AscendC::PipeBarrier<PIPE_V>();     
+            AscendC::PipeBarrier<PIPE_V>(); 
+            
+            // template <typename T, bool isSetMask = true>
+            // __aicore__ inline void Abs(const LocalTensor<T>& dstLocal, 
+            //     const LocalTensor<T>& srcLocal, 
+            //     uint64_t mask, 
+            //     const uint8_t repeatTimes, 
+            //     const UnaryRepeatParams& repeatParams)
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMaxTensor[offset],
+            //     srcMaxTensor[offset],
+            //     abs_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMinTensor[offset],
+            //     srcMinTensor[offset],
+            //     abs_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::PipeBarrier<PIPE_V>(); 
+
             /*
             template <typename T, typename U, bool isSetMask = true>
             __aicore__ inline void MulAddDst(
@@ -1609,6 +1685,22 @@ struct TileReduce<Arch::AtlasA2,
                 sub_params);
             
             AscendC::PipeBarrier<PIPE_V>();  
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMaxTensor[offset],
+            //     srcMaxTensor[offset],
+            //     remain_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::Abs<ElementA,true>(
+            //     srcMinTensor[offset],
+            //     srcMinTensor[offset],
+            //     remain_mask,
+            //     m_actual,
+            //     abs_params);
+
+            // AscendC::PipeBarrier<PIPE_V>(); 
             
             AscendC::MulAddDst<ElementY, ElementA, true>(
                 red_workspace,
@@ -1653,13 +1745,27 @@ struct TileReduce<Arch::AtlasA2,
         var_params.src0RepStride = 8;
         var_params.src1RepStride = 8;
         
-        AscendC::Add<ElementY, true>(
+        // AscendC::Add<ElementY, true>(
+        //     dstTensorVar,
+        //     red_workspace,
+        //     dstTensorVar,
+        //     final_add_mask,
+        //     CeilDiv(m_round, dst_repeat_size),
+        //     var_params);
+        
+        AscendC::Add<ElementY>(
             dstTensorVar,
             red_workspace,
             dstTensorVar,
-            final_add_mask,
-            CeilDiv(m_round, dst_repeat_size),
-            var_params);
+            final_add_mask);
+
+        /*
+        template <typename T>
+        __aicore__ inline void Add(const LocalTensor<T>& dstLocal, 
+            const LocalTensor<T>& src0Local, 
+            const LocalTensor<T>& src1Local, 
+            const int32_t& calCount)
+        */
 
         AscendC::PipeBarrier<PIPE_V>();
     }

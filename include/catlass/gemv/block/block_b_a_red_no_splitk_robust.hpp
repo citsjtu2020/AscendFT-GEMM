@@ -232,7 +232,8 @@ public:
         uint32_t strideACol = layoutA.stride(1) * TileNRound;
         uint32_t strideARow = layoutA.stride(0) * TileMRound;
 
-        uint32_t strideOut = layoutA.stride(0);
+        // uint32_t strideOut = layoutA.stride(0);
+        uint32_t strideOut = layoutA.shape(0);
 
         uint32_t NloopBlock = 1;
         uint32_t MBLoopIdx = 0;
