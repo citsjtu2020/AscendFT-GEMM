@@ -72,7 +72,7 @@ bash scripts/build.sh 03_matmul_add_self_preload_fp32
 
 #### 1.2 Run Code
 
-a) Params:
+##### 1.2.1 Params:
 
 | Item | Discription | Rquired/Optional|
 |------|------------|------------|
@@ -82,12 +82,68 @@ a) Params:
 | device_id | ID of NPU card,0~7 |Optional|
 | make_golden | 1: completely validate the correctness of each element; 0: validate the correctness of row checksum |Optional|
 
-b) Run the examples (Row-checksum validation):
+##### 1.2.2 FP32 Precision:
+
+a) Run the examples (Row-checksum validation):
+
 cd output/bin/
 
-./03_matmul_add_self_preload_fp32 1024 1024 4096 1 0
+./03_matmul_add_self_preload_fp32 4096 4096 4096 1 0
 
 Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="soft_source">
+  <br>
+  <em>Figure 2: Acend-GEMM results (FP32) validated by row checksum</em>
+</div>
+
+
+
+b) Run the examples (Element-wise validation):
+
+cd output/bin/
+
+./03_matmul_add_self_preload_fp32 1024 1024 1024 1 1
+
+Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="soft_source">
+  <br>
+  <em>Figure 2: Acend-GEMM results (FP32) validated by element-wise compare</em>
+</div>
+
+##### 1.2.3 BF16 Precision:
+
+a) Run the examples (Row-checksum validation):
+cd output/bin/
+
+./03_matmul_add_self_preload_bf16 4096 4096 4096 1 0
+
+Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="soft_source">
+  <br>
+  <em>Figure 2: Acend-GEMM results (BF16) validated by row checksum</em>
+</div>
+
+
+
+c) Run the examples (Element-wise validation):
+cd output/bin/
+
+./03_matmul_add_self_preload_bf16 1024 1024 1024 1 1
+
+Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="soft_source">
+  <br>
+  <em>Figure 3: Acend-GEMM results (BF16) validated by element-wise compare</em>
+</div>
+
 
 
 
