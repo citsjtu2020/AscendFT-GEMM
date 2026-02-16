@@ -8,7 +8,7 @@ The core of our code to realize baseline GEMM and fault-tolerant GEMM can be fou
 (The core block level code for baseline GEMM: examples/cube_op_self/gemm/block/block_mmad_pingpong_preload.hpp; Thre core kernel level code for baselien GEMM: examples/cube_op_self/gemm/kernel/matmul_epilogue_preload.hpp)
 
 
-(The core block level code for fault-tolerant AscendFT-GEMM: examples/cube_op_self/gemm/block/block_mmad_pingpong_fault_abe_spec_no_splitk_robust.hpp)
+(The core block level code for fault-tolerant AscendFT-GEMM: examples/cube_op_self/gemm/block/block_mmad_pingpong_fault_abe_spec_no_splitk_robust.hpp; The core kernel level code for AscendFT-GEMM: examples/cube_op_self/gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_robust.hpp)
 
 ## Running examples of Ascend-GEMM
 
@@ -58,7 +58,7 @@ source ${HOME}/Ascend/ascend-toolkit/set_env.sh
 source .bashrc (or just: source ${HOME}/Ascend/ascend-toolkit/set_env.sh)
 
 
-### 1. Run the code for FP32 precision:
+### 1. Run the code:
 
 #### 1.1 Compiling Code
 
@@ -68,11 +68,15 @@ a) enter the path: ${HOME}/AscendFT-GEMM/
 
 b) Build the executable file:
 
-bash scripts/build.sh 03_matmul_add_self_preload_fp32
+bash scripts/build.sh 03_matmul_add_self_preload_fp32 (for FP32 precision)
+
+bash scripts/build.sh 03_matmul_add_self_preload_bf16 (for BF16 precision)
 
 #### 1.2 Run Code
 
 ##### 1.2.1 Params:
+The abstracted command-line parameter instructions can be expressed as follows:
+./03_matmul_add m n k [device_id,make_golden]"
 
 | Item | Discription | Rquired/Optional|
 |------|------------|------------|
@@ -131,7 +135,7 @@ Results:
 
 
 
-c) Run the examples (Element-wise validation):
+b) Run the examples (Element-wise validation):
 cd output/bin/
 
 ./03_matmul_add_self_preload_bf16 1024 1024 1024 1 1
@@ -144,8 +148,90 @@ Results:
   <em>Figure 3: Acend-GEMM results (BF16) validated by element-wise compare</em>
 </div>
 
+## Running examples of AscendFT-GEMM
 
+To demonstrate the 1) ABFT-based verifaction functionality and 2) the competitive throughput maintained by AscendFT-GEMM, we present the experiment scripts under BF16 and FP32 precisions. In these examples, we provide specific scripts for each precision under different range of problem sizes respectively. Since we do not inject errors in these examples, the expected results is to report no-error without false alarm, i.e., the verification-bit ouput for each row in each block is 1 (output 0 at $i$-th row of block $j$, namely (i,j) means an detected error at the corresponding row in the specific block)
 
+### 1. Run the code:
+
+#### 1.1 Compiling Code
+
+After clone the code to the server, e.g., ${HOME} in this example:
+
+##### a) enter the path: 
+
+${HOME}/AscendFT-GEMM/
+
+##### b) Build the executable file:
+
+b.1) for small matrices ($M\times N \times K < 2048^{3}$)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_small_robust_inited (for FP32 precision)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_small_robust_inited (for BF16 precision)
+
+b.2) for medium matrices ($2048^{3} \leq M\times N \times K \leq 4096^{3}$)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_medium_robust_inited (for FP32 precision)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_medium_robust_inited (for BF16 precision)
+
+b.3) for large matrices ($M\times N \times K > 4096^{3}$)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_large_robust_inited (for FP32 precision)
+
+bash scripts/build.sh 18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_large_robust_inited (for BF16 precision)
+
+#### 1.2 Run Code
+
+##### 1.2.1 Params:
+
+The abstracted command-line parameter instructions can be expressed as follows:
+18_matmul_ft m n k rt beta thre_type e_max red_cores split_ks [device_id]"
+
+| Item | Discription | Rquired/Optional|
+|------|------------|------------|
+| m | outer row dimension size|Rquired|
+| n | outer column dimension size|Required|
+| k | reduction dimension size |Rquired|
+| rt| The exponential coefficient in A-ABFT, 8 by default|Required|
+|beta|The base coefficient in A-ABFT, 0 by default| Required|
+|thre_type| The threshold type in A-ABFT, 0 by default|Required|
+|e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.000002|Required|
+|red_cores| The number of AI cores used when computing the local aggregation results for each block tile of matrix B,  it is recommended to be set as 8|Required|
+| split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,$m,n<4096$), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
+| device_id | ID of NPU card,0~7 |Optional|
+
+##### 1.2.2 FP32 Precision:
+
+a) Run the examples ($M\times N \times K = 4096^{3}$):
+
+cd output/bin/
+
+./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_medium_robust_inited 4096 4096 4096 8 0 0 0.000002 8 2 0
+
+Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="soft_source">
+  <br>
+  <em>Figure 2: Acend-GEMM results (FP32) validated by row checksum</em>
+</div>
+
+##### 1.2.3 BF16 Precision:
+
+a) Run the examples  ($M\times N \times K = 4096^{3}$):
+cd output/bin/
+
+./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_medium_robust_inited 4096 4096 4096 8 0 0 0.001 8 2 0
+
+Results:
+
+<div align="center">
+  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="soft_source">
+  <br>
+  <em>Figure 2: Acend-GEMM results (BF16) validated by row checksum</em>
+</div>
 
 
 
