@@ -19,7 +19,7 @@ Currently, our work supports the Ascend 910B/910C NPU devices on the Atlas A2/A3
 ##### 0.2.1) Download the packages
 Our work is recommended running at the CANN 8.2.1 environments. Please download the source at [Ascend resouce download center](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1.alpha003), and find the toolkit and kernel package as follows:
 <div align="center">
-  <img src="./docs/images/software_environment.png" alt="soft_source">
+  <img src="./docs/images/software_environment.png" alt="./docs/images/software_environment.png">
   <br>
   <em>Figure 1: Required Package In the List</em>
 </div>
@@ -97,7 +97,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="ascend_GEMM_fp32_rowsum">
+  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="./docs/images/Ascend-GEMM-fp32-rowsum.png">
   <br>
   <em>Figure 2: Ascend-GEMM results (FP32) validated by row checksum</em>
 </div>
@@ -113,7 +113,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="ascend_GEMM_fp32_element_wise">
+  <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="./docs/images/Ascend-GEMM-fp32-element-wise.png">
   <br>
   <em>Figure 3: Ascend-GEMM results (FP32) validated by element-wise compare</em>
 </div>
@@ -128,7 +128,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="ascend_GEMM_bf16_rowsum">
+  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="./docs/images/Ascend-GEMM-bf16-rowsum.png">
   <br>
   <em>Figure 4: Ascend-GEMM results (BF16) validated by row checksum</em>
 </div>
@@ -143,7 +143,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="ascend_GEMM_bf16_element_wise">
+  <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="./docs/images/Ascend-GEMM-bf16-element-wise.png">
   <br>
   <em>Figure 5: Ascend-GEMM results (BF16) validated by element-wise compare</em>
 </div>
@@ -213,7 +213,7 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/AscendFT-GEMM-fp32-rowsum.png" alt="ascendFT_GEMM_fp32_ABFT">
+  <img src="./docs/images/AscendFT-GEMM-fp32-rowsum.png" alt="./docs/images/AscendFT-GEMM-fp32-rowsum.png">
   <br>
   <em>Figure 6: AscendFT-GEMM results (FP32) validated by row-checksum-based ABFT</em>
 </div>
@@ -228,10 +228,11 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/AscendFT-GEMM-bf16-rowsum.png" alt="ascendFT_GEMM_bf16_ABFT">
+  <img src="./docs/images/AscendFT-GEMM-bf16-rowsum.png" alt="./docs/images/AscendFT-GEMM-bf16-rowsum.png">
   <br>
   <em>Figure 7: AscendFT-GEMM results (BF16) validated by row-checksum-based ABFT</em>
 </div>
+
 
 
 
