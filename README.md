@@ -99,7 +99,7 @@ Results:
 <div align="center">
   <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="soft_source">
   <br>
-  <em>Figure 2: Acend-GEMM results (FP32) validated by row checksum</em>
+  <em>Figure 2: Ascend-GEMM results (FP32) validated by row checksum</em>
 </div>
 
 
@@ -115,7 +115,7 @@ Results:
 <div align="center">
   <img src="./docs/images/Ascend-GEMM-fp32-element-wise.png" alt="soft_source">
   <br>
-  <em>Figure 2: Acend-GEMM results (FP32) validated by element-wise compare</em>
+  <em>Figure 3: Ascend-GEMM results (FP32) validated by element-wise compare</em>
 </div>
 
 ##### 1.2.3 BF16 Precision:
@@ -130,7 +130,7 @@ Results:
 <div align="center">
   <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="soft_source">
   <br>
-  <em>Figure 2: Acend-GEMM results (BF16) validated by row checksum</em>
+  <em>Figure 4: Ascend-GEMM results (BF16) validated by row checksum</em>
 </div>
 
 
@@ -145,7 +145,7 @@ Results:
 <div align="center">
   <img src="./docs/images/Ascend-GEMM-bf16-element-wise.png" alt="soft_source">
   <br>
-  <em>Figure 3: Acend-GEMM results (BF16) validated by element-wise compare</em>
+  <em>Figure 5: Ascend-GEMM results (BF16) validated by element-wise compare</em>
 </div>
 
 ## Running examples of AscendFT-GEMM
@@ -213,9 +213,9 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-fp32-rowsum.png" alt="soft_source">
+  <img src="./docs/images/AscendFT-GEMM-fp32-rowsum.png" alt="soft_source">
   <br>
-  <em>Figure 2: Acend-GEMM results (FP32) validated by row checksum</em>
+  <em>Figure 6: AscendFT-GEMM results (FP32) validated by row-checksum-based ABFT</em>
 </div>
 
 ##### 1.2.3 BF16 Precision:
@@ -228,10 +228,11 @@ cd output/bin/
 Results:
 
 <div align="center">
-  <img src="./docs/images/Ascend-GEMM-bf16-rowsum.png" alt="soft_source">
+  <img src="./docs/images/AscendFT-GEMM-bf16-rowsum.png" alt="soft_source">
   <br>
-  <em>Figure 2: Acend-GEMM results (BF16) validated by row checksum</em>
+  <em>Figure 7: AscendFT-GEMM results (BF16) validated by row-checksum-based ABFT</em>
 </div>
+
 
 
 
