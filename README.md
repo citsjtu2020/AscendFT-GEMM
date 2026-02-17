@@ -199,7 +199,7 @@ The abstracted command-line parameter instructions can be expressed as follows:
 |thre_type| The threshold type in A-ABFT, 0 by default|Required|
 |e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.000002|Required|
 |red_cores| The number of AI cores used when computing the local aggregation results for each block tile of matrix B,  it is recommended to be set as 8|Required|
-| split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,$m,n<4096$), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
+| split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,m,n<4096), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
 | device_id | ID of NPU card,0~7 |Optional|
 
 ##### 1.2.2 FP32 Precision:
@@ -232,6 +232,7 @@ Results:
   <br>
   <em>Figure 7: AscendFT-GEMM results (BF16) validated by row-checksum-based ABFT</em>
 </div>
+
 
 
 
