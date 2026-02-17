@@ -208,7 +208,7 @@ a) Run the examples ($M\times N \times K = 4096^{3}$):
 
 cd output/bin/
 
-./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_medium_robust_inited 4096 4096 4096 8 0 0 0.000002 8 2 0
+./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_fp32_medium_robust_inited 4096 4096 4096 8 0 0 0.000002 8 1 0
 
 Results:
 
@@ -223,7 +223,7 @@ Results:
 a) Run the examples  ($M\times N \times K = 4096^{3}$):
 cd output/bin/
 
-./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_medium_robust_inited 4096 4096 4096 8 0 0 0.001 8 2 0
+./18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_medium_robust_inited 4096 4096 4096 8 0 0 0.001 8 1 0
 
 Results:
 
@@ -232,6 +232,7 @@ Results:
   <br>
   <em>Figure 7: AscendFT-GEMM results (BF16) validated by row-checksum-based ABFT</em>
 </div>
+
 
 
 
