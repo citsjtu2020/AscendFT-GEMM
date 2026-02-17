@@ -900,7 +900,7 @@ void Run(Options options) {
     };
     */
 
-    float use_emax = options.e_max * 3.0f;
+    float use_emax = options.e_max * 1.0f;
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
@@ -1136,7 +1136,7 @@ void Run(Options options) {
         options.problemShape.n(), L1TileShape::N,
         hostA, layoutA, hostAMeanGolden, hostAMaxGolden, 
         hostAMinGolden, hostAStdGolden,hostAMeanAbsGolden,
-        hostThreGolden, options.e_max, rce_thre_type, options.useLogRatio);
+        hostThreGolden, use_emax, rce_thre_type, options.useLogRatio);
 
     // std::vector<GemvOutTypeC> hostAStdGolden(lenThre);
 

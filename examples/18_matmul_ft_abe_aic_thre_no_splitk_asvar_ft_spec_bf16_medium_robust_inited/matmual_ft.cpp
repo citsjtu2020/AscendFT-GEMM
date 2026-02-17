@@ -889,7 +889,7 @@ void Run(Options options) {
         bool outputThre; bool outputCE; uint32_t SplitKNum;
     };
     */
-    float use_emax = options.e_max * 3.0f;
+    float use_emax = options.e_max * 1.0f;
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
@@ -1129,7 +1129,7 @@ void Run(Options options) {
         options.problemShape.n(), L1TileShape::N,
         hostA, layoutA, hostAMeanGolden, hostAMaxGolden, 
         hostAMinGolden, hostAStdGolden,hostAMeanAbsGolden,
-        hostThreGolden, options.e_max, rce_thre_type);
+        hostThreGolden, use_emax, rce_thre_type);
 
     // std::vector<GemvOutTypeC> hostAStdGolden(lenThre);
 
@@ -1139,7 +1139,7 @@ void Run(Options options) {
     //      hostAStdGolden, hostThreGolden, options.e_max, rce_thre_type);
 
     
-    errorIndices = golden::CompareData(hostThreGolden, hostThreGolden, lenThre);
+    errorIndices = golden::CompareData(hostThre, hostThreGolden, lenThre);
     if (errorIndices.empty()) {
         std::cout << "Threshold Compare success." << std::endl;
     } else {

@@ -81,12 +81,15 @@ struct TileThreCalc<Arch::AtlasA2,
             int32_t(m_actual) * 5
         );
 
+        AscendC::PipeBarrier<PIPE_V>();
+
         /*
         template <typename T>
         __aicore__ inline void Abs(
             const LocalTensor<T>& dstLocal, 
             const LocalTensor<T>& srcLocal, const int32_t& calCount)
         */
+
         AscendC::MulAddDst<ElementY, ElementX>(
             thre_workspace[2 * m_actual],
             srcStdTensor,
@@ -310,6 +313,8 @@ struct TileThreCalc<Arch::AtlasA2,
             int32_t(m_actual) * 5
         );
 
+        AscendC::PipeBarrier<PIPE_V>();
+
         /*
         template <typename T>
         __aicore__ inline void Abs(
@@ -413,7 +418,7 @@ struct TileThreCalc<Arch::AtlasA2,
                 thre_workspace[2 * m_actual], 
                 m_actual);
 
-        AscendC::Abs(thre_workspace, thre_workspace, m_actual);
+        // AscendC::Abs(thre_workspace, thre_workspace, m_actual);
         
         AscendC::PipeBarrier<PIPE_V>();
         AscendC::Abs(thre_workspace, thre_workspace, m_actual);
@@ -530,6 +535,8 @@ struct TileThreCalc<Arch::AtlasA2,
             (ElementY)0.0,
             int32_t(m_actual) * 5
         );
+
+        AscendC::PipeBarrier<PIPE_V>();
 
         /*
         template <typename T>
