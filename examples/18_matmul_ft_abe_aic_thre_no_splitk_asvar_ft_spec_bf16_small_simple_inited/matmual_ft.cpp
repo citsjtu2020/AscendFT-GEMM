@@ -898,7 +898,7 @@ void Run(Options options) {
     };
     */
 
-    float use_emax = options.e_max * 1.0f;
+    float use_emax = options.e_max * 3.0f;
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
@@ -1150,7 +1150,7 @@ void Run(Options options) {
         std::cerr << "Row Std of A failed. Error count: " << errorIndices.size() << std::endl;
     }
 
-    errorIndices = golden::CompareData(hostThreGolden, hostThreGolden, lenThre);
+    errorIndices = golden::CompareData(hostThre, hostThreGolden, lenThre);
     if (errorIndices.empty()) {
         std::cout << "Threshold Compare success." << std::endl;
     } else {

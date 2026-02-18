@@ -599,14 +599,14 @@ public:
             AscendC::SetFlag<AscendC::HardEvent::V_MTE3>((event_t)(UbOutZEventList[UbOutListId]));
             AscendC::WaitFlag<AscendC::HardEvent::V_MTE3>((event_t)(UbOutZEventList[UbOutListId]));
 
-            // if(outputThre){
-            //     auto layoutDstYThre = layoutThre.GetTileLayout(TensorCoord(m_actual));
-            //     auto layoutComputeThreInUb = layoutThre.GetTileLayout(TensorCoord(m_actual));
-            //     vecCopyUbToGmforThre(gmThreZ[mLoopOffset], 
-            //         UbThreTensorList[UbOutListId], 
-            //         layoutDstYThre, 
-            //         layoutComputeThreInUb);
-            // }
+            if(outputThre){
+                auto layoutDstYThre = layoutThre.GetTileLayout(TensorCoord(m_actual));
+                auto layoutComputeThreInUb = layoutThre.GetTileLayout(TensorCoord(m_actual));
+                vecCopyUbToGmforThre(gmThreZ[mLoopOffset], 
+                    UbThreTensorList[UbOutListId], 
+                    layoutDstYThre, 
+                    layoutComputeThreInUb);
+            }
             
             // if(outputStd){
             //     auto layoutDstYStd = layoutThre.GetTileLayout(TensorCoord(m_actual));
