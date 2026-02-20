@@ -74,7 +74,7 @@
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_robust.hpp"
-#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_simplified.hpp"
+#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_simplified_preload.hpp"
 #include "gemm/device/device_gemm.hpp" // catlass/
 
 #include "fp16_t.h"
@@ -86,10 +86,8 @@ using namespace Catlass;
 using fp16_t = op::fp16_t;
 using op_bfloat16 = op::bfloat16;
 
-using GemmInTypeC = float;
-// ?op_bfloat16;
-using GemmInTypeN = float;
-// bfloat16_t;
+using GemmInTypeC = op_bfloat16;
+using GemmInTypeN = bfloat16_t;
 
 using GemmOutTypeC = float;
 using GemmOutTypeN = float;
@@ -99,10 +97,8 @@ using GemvInTypeCforCE = float;
 using GemvInTypeNforCE = float;
 // bfloat16_t;
 
-using GemvInTypeCforAB = float;
-// op_bfloat16;
-using GemvInTypeNforAB = float;
-// bfloat16_t;
+using GemvInTypeCforAB = op_bfloat16;
+using GemvInTypeNforAB = bfloat16_t;
 
 using GemvOutTypeC = float;
 using GemvOutTypeN = float;
@@ -210,8 +206,8 @@ void Run(Options options) {
 
     std::cout<<"Device ID: "<<options.deviceId<<std::endl;
 
-    using L1TileShape = GemmShape<128, 256, 128>;
-    using L0TileShape = GemmShape<128, 256, 32>;
+    using L1TileShape = GemmShape<128, 256, 256>;
+    using L0TileShape = GemmShape<128, 256, 64>;
     // 64
 
     static constexpr uint32_t BYTE_FOR_EACH_BLK = 32;
@@ -511,8 +507,8 @@ void Run(Options options) {
     using L1TileShapeAB = GemmShape<128, 128, 128>;
     using L0TileShapeAB = GemmShape<128, 128, 128>;
 
-    using L1TileShapeBE = GemvShape<64, 256>;
-    using L0TileShapeBE = GemvShape<64, 64>;
+    using L1TileShapeBE = GemvShape<256, 256>;
+    using L0TileShapeBE = GemvShape<256, 64>;
 
     using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*1>;
     // using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*2>;
@@ -538,7 +534,7 @@ void Run(Options options) {
     /*
     struct BlockFTGemvBe<
     Gemm::MmadAtlasA2Preload<ENABLE_UNIT_FLAG_, ENABLE_SHUFFLE_K_>,
-    Gemv::helper::FT_AIC_BE_SCHEME::ROWCOMPLETE,
+    Gemv::helper::FT_AIC_BE_SCHEME::ROWCOMPLETE_BF,
     UBBlockShape_,
     L1TileShape_,
     L0TileShape_,
@@ -553,7 +549,7 @@ void Run(Options options) {
     // FT_AIC_BE_SCHEME::COLCOMPLETE,
     // FT_AIC_BE_SCHEME::ROWCOMPLETE,
     using BlockFTGemvAIC = Gemv::Block::BlockFTGemvBe<BeAICDispatchPolicy, 
-        FT_AIC_BE_SCHEME::ROWCOMPLETE,
+        FT_AIC_BE_SCHEME::ROWCOMPLETE_BF,
         UBBlockShapeBE, L1TileShapeBE, L0TileShapeBE, 
         BType, XTypeAIC, YTypeBEAIC, BiasType, TileCopyGemvAic, TileMmadGemvAic>;
 
@@ -574,8 +570,8 @@ void Run(Options options) {
     // using L1TileShape = GemmShape<128, 240, 256>;
     // using L0TileShape = GemmShape<128, 240, 64>;
 
-    using L1TileShapeFirst = GemmShape<256,256,128>;
-    using L0TileShapeFirst = GemmShape<256,256,32>;
+    using L1TileShapeFirst = GemmShape<256,256,256>;
+    using L0TileShapeFirst = GemmShape<256,256,64>;
 
     using L1TileShapeforFT = GemmShape<L1TileShapeFirst::M, 16, L1TileShapeFirst::K>;
     using L0TileShapeforFT = GemmShape<L0TileShapeFirst::M, 16, L0TileShapeFirst::K>;
@@ -624,9 +620,9 @@ void Run(Options options) {
     class TileCopy = CubeSelf::Gemm::Tile::TileCopy<typename DispatchPolicy::ArchTag, AType, BType, CType, BiasType>,
     class TileMmad = CubeSelf::Gemm::Tile::TileMmad<typename DispatchPolicy::ArchTag, AType, BType, BiasType>
     >
-    struct BlockMmad
+    struct BlockMmadPreload
     */
-    using BlockMmad = CubeSelf::Gemm::Block::BlockMmad<
+    using BlockMmadPreload = CubeSelf::Gemm::Block::BlockMmadPreload<
         MmadDispatchPolicy, L1TileShape, L0TileShape, AType, BType, CType>;
 
     using BlockSchedulerFirst = typename CubeSelf::Gemm::Block::GemmIdentityBlockSwizzle<3, 0>;
@@ -652,10 +648,10 @@ void Run(Options options) {
     using TileFaultCopyRedAiv = Gemv::Tile::TileCopyFTRedAiv<ArchTag, 
         AType, BType, YType, ZType>;
 
-    using UBTileShapeforB = GemvShape<32, L0TileShape::N>;
+    using UBTileShapeforB = GemvShape<48, L0TileShape::N>;
     using UBBlockShapeforB = GemvShape<UBTileShapeforB::M*2, UBTileShapeforB::N*2>;
 
-    using UBTileShapeforA = GemvShape<32, 256>;
+    using UBTileShapeforA = GemvShape<48, 256>;
 
     using ARedType = Gemm::GemmType<GemvInTypeNforCE, LayoutA>;
     using TileFaultSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::MAX_MIN, ARedType, ZType>;
@@ -664,7 +660,7 @@ void Run(Options options) {
     struct BlockFTSumNoSplitK <
     Gemm::GemvAtlasA2,
     Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
-    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
+    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED_BF,
     UBTileShapeforB_,
     UBBlockShapeforB_,
     UBTileShapeforA_,
@@ -682,14 +678,14 @@ void Run(Options options) {
     using BlockFTSum = Gemv::Block::BlockFTSumNoSplitK<
         GemvDispatchPolicy,
         Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
-        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
+        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED_BF,
         UBTileShapeforB, UBBlockShapeforB, UBTileShapeforA,
         L1TileShape, AType, BType, YType, ZType, void,
         TileFaultCopyRedAiv, TileFaultSum>;
 
     using SliceSumDispatchPolicy = Gemm::GemvAtlasA2;
 
-    using SliceSumUBTileShape = GemvShape<8,256>;
+    using SliceSumUBTileShape = GemvShape<8, 256>;
     using TileMatrixAddforABEReduce = Gemv::Tile::TileMatmulAdd<
         typename SliceSumDispatchPolicy::ArchTag, MYType, MYType, void>;
     using TileCopyMatrixAddforABEReduce = Gemv::Tile::TileCopyMatrixAddAiv<
@@ -802,7 +798,7 @@ void Run(Options options) {
     >;
 
     /*
-    struct BlockFTGemvCENoSplitK <
+    struct BlockFTGemvCENoSplitKPreload <
     Gemm::GemvAtlasA2,
     Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
     Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED,
@@ -825,7 +821,7 @@ void Run(Options options) {
 
     using TileFaultSumCSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::SUM, CType, ZType>;
 
-    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitK<
+    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitKPreload<
         GemvDispatchPolicy,
         Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
         Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED, 
@@ -857,8 +853,8 @@ void Run(Options options) {
     class MatmulAsVarABonAicNoSplitSpecSimplified 
     */
     
-    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecSimplified<
-        BlockMmadABe, BlockMmad, BlockSchedulerFirst, BlockScheduler,
+    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecSimplifiedPreload<
+        BlockMmadABe, BlockMmadPreload, BlockSchedulerFirst, BlockScheduler,
         BlockFTGemvAIC, BlockFTSum, BlockFTGemvAIV, 
         BlockSliceRed, BlockSliceSum>;
     // Prepare params
@@ -904,7 +900,8 @@ void Run(Options options) {
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
-        use_emax = use_emax * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
+        use_emax = use_emax * 1.0f;
+        // * std::sqrt(((k*1.0f / 1024*1.0f)*1.0f));
     }
 
     typename MatmulFTKernel::Arguments arguments{

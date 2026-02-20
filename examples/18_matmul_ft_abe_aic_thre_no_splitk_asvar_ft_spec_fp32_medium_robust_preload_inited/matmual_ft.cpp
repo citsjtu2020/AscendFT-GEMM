@@ -73,8 +73,7 @@
 // #include "catlass/status.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec.hpp"
-// #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_robust.hpp"
-#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_simplified.hpp"
+#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_robust_preload.hpp"
 #include "gemm/device/device_gemm.hpp" // catlass/
 
 #include "fp16_t.h"
@@ -87,7 +86,7 @@ using fp16_t = op::fp16_t;
 using op_bfloat16 = op::bfloat16;
 
 using GemmInTypeC = float;
-// ?op_bfloat16;
+// op_bfloat16;
 using GemmInTypeN = float;
 // bfloat16_t;
 
@@ -114,7 +113,7 @@ using ScalarType = float;
 
 
 struct Options {
-    const std::string HELPER = "18_matmul_ft m n k rt beta thre_type e_max red_cores split_ks useLogRatio [device_id]";
+    const std::string HELPER = "18_matmul_ft m n k rt beta thre_type e_max red_cores split_ks [device_id]";
 
     GemmCoord problemGemmShape{128, 128, 128};
     GemvCoord problemShape{128, 128};
@@ -128,7 +127,6 @@ struct Options {
 
     uint32_t reduce_cores{8};
     uint32_t split_ks{1};
-    int32_t useLogRatio{0};
 
     float e_max;
 
@@ -145,7 +143,6 @@ struct Options {
             E_MAX_INDEX,
             RED_CORES_INDEX,
             SPLIT_KS_INDEX,
-            LOG_RATIO_INDEX,
             DEVICE_ID_INDEX,
             ARGS_MAX
         };
@@ -170,7 +167,6 @@ struct Options {
         reduce_cores = std::atoi(argv[RED_CORES_INDEX]);
         split_ks = std::atoi(argv[SPLIT_KS_INDEX]);
 
-        useLogRatio = std::atoi(argv[LOG_RATIO_INDEX]);
         if (argc == ARGS_MAX) {
             deviceId = std::atoi(argv[DEVICE_ID_INDEX]);
         }
@@ -293,6 +289,7 @@ void Run(Options options) {
     size_t sizeAMean = lenARed * sizeof(GemvOutTypeC);
     size_t sizeAMax = lenARed * sizeof(GemvOutTypeC);
     size_t sizeAMin = lenARed * sizeof(GemvOutTypeC);
+
 
     using LayoutX = layout::VectorLayout;
     using LayoutY = layout::VectorLayout;
@@ -511,8 +508,8 @@ void Run(Options options) {
     using L1TileShapeAB = GemmShape<128, 128, 128>;
     using L0TileShapeAB = GemmShape<128, 128, 128>;
 
-    using L1TileShapeBE = GemvShape<64, 256>;
-    using L0TileShapeBE = GemvShape<64, 64>;
+    using L1TileShapeBE = GemvShape<128, 256>;
+    using L0TileShapeBE = GemvShape<128, 64>;
 
     using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*1>;
     // using UBBlockShapeBE = GemvShape<L1TileShapeBE::M*2, L1TileShapeBE::N*2>;
@@ -593,20 +590,22 @@ void Run(Options options) {
     // using LayoutMY = layout::RowMajor;
     // using MYType = Gemm::GemmType<GemvOutTypeN, LayoutMY>;
     /*
-    struct BlockMmadSpecABeNoSplitK<
-    CubeSelf::Gemm::MmadAtlasA2Pingpong<ENABLE_UNIT_FLAG_>,
-    L1TileShapeforFT_,
-    L0TileShapeforFT_,
-    AType_,
-    BType_,
-    CType_,
-    XType_,
-    YType_,
-    BiasType_,
-    TileCopyFTABonAic_,
-    TileMmad_>
+    template<
+        class DispatchPolicy,
+        class L1TileShapeforFT,
+        class L0TileShapeforFT,
+        class AType,
+        class BType,
+        class CType,
+        class XType,
+        class YType,
+        class BiasType,
+        class TileCopyFTABonAic = CubeSelf::Gemm::Tile::TileCopyFTABonAic<typename DispatchPolicy::ArchTag, AType, BType, CType, XType, YType, BiasType>,
+        class TileMmad = CubeSelf::Gemm::Tile::TileMmad<typename DispatchPolicy::ArchTag, AType, XType, BiasType>
+    >
+    struct BlockMmadSpecABeNoSplitKRobust
     */
-    using BlockMmadABe = CubeSelf::Gemm::Block::BlockMmadSpecABeNoSplitK<
+    using BlockMmadABe = CubeSelf::Gemm::Block::BlockMmadSpecABeNoSplitKRobust<
         MmadDispatchPolicy, 
         L1TileShapeforFT,
         L0TileShapeforFT, 
@@ -624,9 +623,9 @@ void Run(Options options) {
     class TileCopy = CubeSelf::Gemm::Tile::TileCopy<typename DispatchPolicy::ArchTag, AType, BType, CType, BiasType>,
     class TileMmad = CubeSelf::Gemm::Tile::TileMmad<typename DispatchPolicy::ArchTag, AType, BType, BiasType>
     >
-    struct BlockMmad
+    struct BlockMmadPreload
     */
-    using BlockMmad = CubeSelf::Gemm::Block::BlockMmad<
+    using BlockMmadPreload = CubeSelf::Gemm::Block::BlockMmadPreload<
         MmadDispatchPolicy, L1TileShape, L0TileShape, AType, BType, CType>;
 
     using BlockSchedulerFirst = typename CubeSelf::Gemm::Block::GemmIdentityBlockSwizzle<3, 0>;
@@ -652,10 +651,10 @@ void Run(Options options) {
     using TileFaultCopyRedAiv = Gemv::Tile::TileCopyFTRedAiv<ArchTag, 
         AType, BType, YType, ZType>;
 
-    using UBTileShapeforB = GemvShape<32, L0TileShape::N>;
+    using UBTileShapeforB = GemvShape<64, L0TileShape::N>;
     using UBBlockShapeforB = GemvShape<UBTileShapeforB::M*2, UBTileShapeforB::N*2>;
 
-    using UBTileShapeforA = GemvShape<32, 256>;
+    using UBTileShapeforA = GemvShape<64, 256>;
 
     using ARedType = Gemm::GemmType<GemvInTypeNforCE, LayoutA>;
     using TileFaultSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::MAX_MIN, ARedType, ZType>;
@@ -663,7 +662,7 @@ void Run(Options options) {
     /*
     struct BlockFTSumNoSplitK <
     Gemm::GemvAtlasA2,
-    Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+    Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
     Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
     UBTileShapeforB_,
     UBBlockShapeforB_,
@@ -676,12 +675,12 @@ void Run(Options options) {
     BiasType_,
     TileCopy_,
     TileFaultSum_
-    > 
+    >  
     */
     
     using BlockFTSum = Gemv::Block::BlockFTSumNoSplitK<
         GemvDispatchPolicy,
-        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
         Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_MIXED,
         UBTileShapeforB, UBBlockShapeforB, UBTileShapeforA,
         L1TileShape, AType, BType, YType, ZType, void,
@@ -689,7 +688,7 @@ void Run(Options options) {
 
     using SliceSumDispatchPolicy = Gemm::GemvAtlasA2;
 
-    using SliceSumUBTileShape = GemvShape<8,256>;
+    using SliceSumUBTileShape = GemvShape<8, 256>;
     using TileMatrixAddforABEReduce = Gemv::Tile::TileMatmulAdd<
         typename SliceSumDispatchPolicy::ArchTag, MYType, MYType, void>;
     using TileCopyMatrixAddforABEReduce = Gemv::Tile::TileCopyMatrixAddAiv<
@@ -702,7 +701,7 @@ void Run(Options options) {
     /*
     struct BlockSliceKMNSum <
         Gemm::GemvAtlasA2,
-        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_SIMPLIFIED,
+        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_ROBUST,
         UBTileShapeforA_,
         UBTileShapeforB_,
         AType_,
@@ -716,7 +715,6 @@ void Run(Options options) {
         TileFaultSum_,
         TileVmuls_
     >
-    >
     */
     using MeanMaxTileVmuls = Gemv::Tile::TileVmuls<typename GemvDispatchPolicy::ArchTag, ZType>;
     using UBTileShapeforBRed = GemvShape<8,256>;
@@ -725,7 +723,7 @@ void Run(Options options) {
     
     using BlockSliceRed = Gemv::Block::BlockSliceKMNSum<
         SliceSumDispatchPolicy,
-        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_SIMPLIFIED,
+        Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::A_B_ROBUST,
         SliceSumUBTileShape,
         UBTileShapeforBRed,
         MYType, BRedType, ZType,
@@ -767,16 +765,16 @@ void Run(Options options) {
 
     /*
     struct TileThreCalc<Arch::AtlasA2,
-                helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+                helper::FT_THRESHOLD_ALGORITHM::ASVAR,
                 Gemm::GemmType<ElementA, layout::RowMajor>,
-                Gemm::GemmType<ElementX, layout::VectorLayout>,
-                Gemm::GemmType<ElementY, layout::VectorLayout>,
+                Gemm::GemmType<float, layout::VectorLayout>,
+                Gemm::GemmType<float, layout::VectorLayout>,
                 void>
     */
 
     using TileThreCalc = Gemv::Tile::TileThreCalc<
         typename ThreCalcDispatchPolicy::ArchTag, 
-        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
         CType, ZType, ZType, BiasType>; 
 
     // using TileThreCalcRaw = Gemv::Tile::TileThreCalc<
@@ -785,26 +783,22 @@ void Run(Options options) {
     //     AType, YType, ZType, BiasType>; 
 
     /*
-    template <
-        /// Tag indicating architecture
-        class ArchTag,
-        class XType,
-        class YType,
-        class BiasType = void
-    >
-    struct TileStdEstSimplified
+    struct TileStdEst<Arch::AtlasA2,
+                Gemm::GemmType<float, layout::VectorLayout>,
+                Gemm::GemmType<float, layout::VectorLayout>,
+                void>
     */
 
-    using TileStdEst = Gemv::Tile::TileStdEstSimplified<
+    using TileStdEst = Gemv::Tile::TileStdEstRobust<
         typename ThreCalcDispatchPolicy::ArchTag,
         ZType,
         ZType
     >;
 
     /*
-    struct BlockFTGemvCENoSplitK <
+    struct BlockFTGemvCENoSplitKPreload <
     Gemm::GemvAtlasA2,
-    Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+    Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
     Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED,
     Gemv::helper::FT_ENC_TYPE::RCE,
     Gemv::helper::FT_COMP_TYPE::RSUB,
@@ -825,9 +819,9 @@ void Run(Options options) {
 
     using TileFaultSumCSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::SUM, CType, ZType>;
 
-    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitK<
+    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitKPreload<
         GemvDispatchPolicy,
-        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
+        Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_ROBUST,
         Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED, 
         Gemv::helper::FT_ENC_TYPE::RCE, 
         Gemv::helper::FT_COMP_TYPE::RSUB,
@@ -845,20 +839,23 @@ void Run(Options options) {
     // Kernel level
     /*
     template <
-    class BlockMmadABe_,
-    class BlockMmad_,
-    class BlockSchedulerFirst_,
-    class BlockScheduler_,
-    class BlockFTGemvAIC_,
-    class BlockFTSum_,
-    class BlockFTGemvAIV_,
-    class BlockSliceRed_,
-    class BlockSliceSum_>
-    class MatmulAsVarABonAicNoSplitSpecSimplified 
+        class BlockMmadABe_,
+        class BlockMmad_,
+        class BlockSchedulerFirst_,
+        class BlockScheduler_,
+        class BlockFTGemvAIC_,
+        class BlockFTSum_,
+        class BlockFTGemvAIV_,
+        class BlockSliceRed_,
+        class BlockSliceSum_
+    >
+    class MatmulAsVarABonAicNoSplitMixedSpec
     */
-    
-    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecSimplified<
-        BlockMmadABe, BlockMmad, BlockSchedulerFirst, BlockScheduler,
+    // , BlockThresholdCalc
+    // CompareBlockSUB
+    // MatmulAsVarABonAicNoSplitSpecRobust
+    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecRobustPreload<
+        BlockMmadABe, BlockMmadPreload, BlockSchedulerFirst, BlockScheduler,
         BlockFTGemvAIC, BlockFTSum, BlockFTGemvAIV, 
         BlockSliceRed, BlockSliceSum>;
     // Prepare params
@@ -888,19 +885,17 @@ void Run(Options options) {
         GM_ADDR ptrCOMPZRow; GM_ADDR ptrCOMPZCol;
         GM_ADDR ptrBE; GM_ADDR ptrBEforAIV;
         GM_ADDR ptrBMaxSlice; GM_ADDR ptrBMinSlice;
-        GM_ADDR ptrBMeanAbs; GM_ADDR ptrBMeanSquare;
-        GM_ADDR ptrBVar; GM_ADDR ptrVXforA;
-        GM_ADDR ptrAMean; GM_ADDR ptrAMax;
-        GM_ADDR ptrAMin; GM_ADDR ptrThreZ;
-        FT_ENC_TYPE enc_type; uint32_t UbNum; bool OutputWorkspace;
-        ElementCOMPX threshold; float rounding_exponent;
-        float size_beta; float e_max_raw;
-        uint32_t reduce_cores; FT_RCE_THRE_TYPE rce_thre_type;
-        bool outputThre; bool outputCE; uint32_t SplitKNum; int32_t useLogRatio;
+        GM_ADDR ptrBMeanAbs; GM_ADDR ptrBMeanSquare; GM_ADDR ptrBVar; 
+        GM_ADDR ptrVXforA; GM_ADDR ptrAMean; GM_ADDR ptrAMax; GM_ADDR ptrAMin; 
+        GM_ADDR ptrThreZ; FT_ENC_TYPE enc_type;
+        uint32_t UbNum; bool OutputWorkspace; ElementCOMPX threshold;
+        float rounding_exponent; float size_beta;
+        float e_max_raw; uint32_t reduce_cores; FT_RCE_THRE_TYPE rce_thre_type;
+        bool outputThre; bool outputCE; uint32_t SplitKNum;
     };
     */
 
-    float use_emax = options.e_max * 3.0f;
+    float use_emax = options.e_max * 1.0f;
     if(k <= 1024){
         use_emax = use_emax * 1.0f;
     }else{
@@ -918,9 +913,8 @@ void Run(Options options) {
         deviceThre, FT_ENC_TYPE::RCE, 1, false, threshold,
         options.round_exp, options.beta, 
         use_emax, options.reduce_cores, 
-        rce_thre_type,true,true, options.split_ks, options.useLogRatio};
-    
-    // true
+        rce_thre_type,true,true, options.split_ks};
+
     // Prepare FFTS address
     uint64_t fftsAddr{0};
     uint32_t fftsLen{0};
@@ -1010,7 +1004,7 @@ void Run(Options options) {
     
     // std::vector<uint64_t> errorIndices;
     if(BE_SCHEME == FT_AIC_BE_SCHEME::ROWCOMPLETE_BF){
-        errorIndices = golden::CompareData(hostBE, hostYForAB, problemShapeBE.m());
+        errorIndices = golden::CompareData(hostBEforAIV, hostYForAB, problemShapeBE.m());
     }else{
         errorIndices = golden::CompareData(hostBE, hostYForAB, problemShapeBE.m());
     }
@@ -1045,27 +1039,25 @@ void Run(Options options) {
     // }
 
     /*
-    template<class ElementA, class LayoutA, 
-    class ElementGolden>
-    void ComputeMeanAbsSquareVarSliceSimple(
-        const Catlass::GemvCoord &problemShape,
-        const Catlass::GemvCoord &sliceShape,
-        const std::vector<ElementA> &dataA, const LayoutA &layoutA,
-        std::vector<ElementGolden> &dataMeanAbsGolden,
-        std::vector<ElementGolden> &dataMeanSquareGolden,
-        std::vector<ElementGolden> &dataVarGolden)
+    ComputeMeanAbsSquareVarSliceRobust(
+    const Catlass::GemvCoord &problemShape,
+    const Catlass::GemvCoord &sliceShape,
+    const std::vector<ElementA> &dataA, const LayoutA &layoutA,
+    std::vector<ElementGolden> &dataMeanAbsGolden,
+    std::vector<ElementGolden> &dataMeanSquareGolden,
+    std::vector<ElementGolden> &dataVarGolden)
     */
     GemvCoord BReduceSliceShape{problemShapeBE.m(), L1TileShape::N};
-    golden::ComputeMeanAbsSquareVarSliceSimple(problemShapeBE, BReduceSliceShape,
+    golden::ComputeMeanAbsSquareVarSliceRobust(problemShapeBE, BReduceSliceShape,
         hostB, layoutB, hostBMeanAbsGolden, hostBMeanSquareGolden, hostBVarGolden);
 
     errorIndices = golden::CompareData(hostBMeanAbs, hostBMeanAbsGolden, splitNnum);
 
-    // for(int j=0; j < splitNnum; j++){
-    //     printf("Expect B Mean ABS[%d]: %f\n",j,hostBMeanAbsGolden[j]);
-    //     printf("Actual B Mean ABS[%d]: %f\n",j,hostBMeanAbs[j]);
+    for(int j=0; j < splitNnum; j++){
+        printf("Expect B Mean ABS[%d]: %f\n",j,hostBMeanAbsGolden[j]);
+        printf("Actual B Mean ABS[%d]: %f\n",j,hostBMeanAbs[j]);
         
-    // }
+    }
 
     if (errorIndices.empty()) {
         std::cout << "B Reduce Mean ABS Compare success." << std::endl;
@@ -1075,11 +1067,11 @@ void Run(Options options) {
     
     errorIndices = golden::CompareData(hostBMeanSquare, hostBMeanSquareGolden, splitNnum);
 
-    // for(int j=0; j < splitNnum; j++){
-    //     printf("Expect B Mean square[%d]: %f\n",j,hostBMeanSquare[j]);
-    //     printf("Actual B Mean square[%d]: %f\n",j,hostBMeanSquare[j]);
+    for(int j=0; j < splitNnum; j++){
+        printf("Expect B Mean square[%d]: %f\n",j,hostBMeanSquareGolden[j]);
+        printf("Actual B Mean square[%d]: %f\n",j,hostBMeanSquare[j]);
         
-    // }
+    }
 
     if (errorIndices.empty()) {
         std::cout << "B Reduce Mean square Compare success." << std::endl;
@@ -1112,31 +1104,31 @@ void Run(Options options) {
     std::vector<GemvOutTypeC> hostAMeanAbsGolden(lenThre);
 
     /*
-    template<class ElementX, class ElementA, class LayoutA, 
-    class ElementGolden>
-    void ComputeThresholdsASVARSimpleTSlice(
+    void ComputeThresholdsASVARRobustTSlice(
     const Catlass::GemvCoord &problemShape,
-    uint32_t splitNnum, const std::vector<ElementX> &dataBMeanabs,
-    const std::vector<ElementX> &dataBMeanSquare, const std::vector<ElementX> &dataBVar,
+    uint32_t splitNnum,
+    const std::vector<ElementX> &dataBMeanabs,
+    const std::vector<ElementX> &dataBMeanSquare,
+    const std::Vector<ElementX> &dataBVar,
     uint32_t B_N_size, uint32_t B_N_tile,
     const std::vector<ElementA> &dataA, const LayoutA &layoutA,
     std::vector<ElementGolden> &dataAMean,
     std::vector<ElementGolden> &dataAMax,
-    std::vector<ElementGolden> &dataAMin,
+    std::vector<ElementGoldent> &dataAMin,
     std::vector<ElementGolden> &dataAStd,
     std::vector<ElementGolden> &dataAMeanAbs,
     std::vector<ElementGolden> &dataGolden, 
     float e_max,
-    Catlass::Gemv::helper::FT_RCE_THRE_TYPE rce_thre_type,
-    int32_t useLogRatio)
+    Catlass::Gemv::helper::FT_RCE_THRE_TYPE rce_thre_type 
+)
     */
-    golden::ComputeThresholdsASVARSimpleTSlice(
+    golden::ComputeThresholdsASVARRobustTSlice(
         problemShapeABE, splitNnum,
         hostBMeanAbsGolden, hostBMeanSquareGolden, hostBVarGolden,
         options.problemShape.n(), L1TileShape::N,
         hostA, layoutA, hostAMeanGolden, hostAMaxGolden, 
         hostAMinGolden, hostAStdGolden,hostAMeanAbsGolden,
-        hostThreGolden, use_emax, rce_thre_type, options.useLogRatio);
+        hostThreGolden, use_emax, rce_thre_type);
 
     // std::vector<GemvOutTypeC> hostAStdGolden(lenThre);
 
@@ -1145,13 +1137,7 @@ void Run(Options options) {
     //      L1TileShape::N, hostA, layoutA, hostAMeanGolden, hostAMaxGolden,
     //      hostAStdGolden, hostThreGolden, options.e_max, rce_thre_type);
 
-    errorIndices = golden::CompareData(hostAMax, hostAStdGolden, lenARed);
-    if (errorIndices.empty()) {
-        std::cout << "Row Std of A Compare success." << std::endl;
-    } else {
-        std::cerr << "Row Std of A failed. Error count: " << errorIndices.size() << std::endl;
-    }
-
+    
     errorIndices = golden::CompareData(hostThre, hostThreGolden, lenThre);
     if (errorIndices.empty()) {
         std::cout << "Threshold Compare success." << std::endl;
@@ -1167,12 +1153,12 @@ void Run(Options options) {
     std::vector<float> totalErrorDataRow;
     std::vector<float> totalFailThresholds;
 
-    errorIndices = golden::CompareData(hostAMeanGolden, hostAMeanGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMean, hostAMeanGolden, options.problemShape.m());
 
-    // for(int j=0; j < splitNnum; j++){
-    //     printf("Expect A Mean[%d]: %f\n",j,hostAMeanGolden[j]);
-    //     printf("Actual A Mean[%d]: %f\n",j,hostAMean[j]);
-    // }
+    for(int j=0; j < splitNnum; j++){
+        printf("Expect A Mean[%d]: %f\n",j,hostAMeanGolden[j]);
+        printf("Actual A Mean[%d]: %f\n",j,hostAMean[j]);
+    }
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Mean Compare success." << std::endl;
@@ -1180,7 +1166,7 @@ void Run(Options options) {
         std::cerr << "A Reduce Mean Compare failed." << std::endl;
     }
     
-    errorIndices = golden::CompareData(hostAMaxGolden, hostAMaxGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMax, hostAMaxGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Max Compare success." << std::endl;
@@ -1193,7 +1179,7 @@ void Run(Options options) {
     //     printf("Actual A Max[%d]: %f\n",j,hostAMax[j]);
     // }
 
-    errorIndices = golden::CompareData(hostAMinGolden, hostAMinGolden, options.problemShape.m());
+    errorIndices = golden::CompareData(hostAMin, hostAMinGolden, options.problemShape.m());
 
     if (errorIndices.empty()) {
         std::cout << "A Reduce Min Compare success." << std::endl;
@@ -1236,7 +1222,7 @@ void Run(Options options) {
     
     errorIndices = golden::GetErrorDataAndIndexSliceWithThreshold(
         options.problemShape,
-        hostCOMPRow, hostGoldenCOMPRow, hostZRow, hostDRow, hostThreGolden, 
+        hostCOMPRow, hostGoldenCOMPRow, hostZRow, hostDRow, hostThre, 
         lenZRow, "CE", "ABE", totalErrorIdxRow, totalErrorIdxRow_m, totalErrorIdxRow_n,
         totalErrorDataRow, totalFailThresholds);
     

@@ -74,7 +74,7 @@
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec.hpp"
 // #include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_robust.hpp"
-#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_simplified.hpp"
+#include "gemm/kernel/matmul_epilogue_asvar_thre_abft_no_splitk_aic_aiv_pipe_mixed_spec_simplified_preload.hpp"
 #include "gemm/device/device_gemm.hpp" // catlass/
 
 #include "fp16_t.h"
@@ -624,9 +624,10 @@ void Run(Options options) {
     class TileCopy = CubeSelf::Gemm::Tile::TileCopy<typename DispatchPolicy::ArchTag, AType, BType, CType, BiasType>,
     class TileMmad = CubeSelf::Gemm::Tile::TileMmad<typename DispatchPolicy::ArchTag, AType, BType, BiasType>
     >
-    struct BlockMmad
+    struct BlockMmadPreload
     */
-    using BlockMmad = CubeSelf::Gemm::Block::BlockMmad<
+
+    using BlockMmadPreload = CubeSelf::Gemm::Block::BlockMmadPreload<
         MmadDispatchPolicy, L1TileShape, L0TileShape, AType, BType, CType>;
 
     using BlockSchedulerFirst = typename CubeSelf::Gemm::Block::GemmIdentityBlockSwizzle<3, 0>;
@@ -802,7 +803,7 @@ void Run(Options options) {
     >;
 
     /*
-    struct BlockFTGemvCENoSplitK <
+    struct BlockFTGemvCENoSplitKPreload <
     Gemm::GemvAtlasA2,
     Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
     Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED,
@@ -825,7 +826,7 @@ void Run(Options options) {
 
     using TileFaultSumCSum = Gemv::Tile::TileFaultSum<ArchTag, FT_REDUCE_TYPE::SUM, CType, ZType>;
 
-    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitK<
+    using BlockFTGemvAIV = Gemv::Block::BlockFTGemvCENoSplitKPreload<
         GemvDispatchPolicy,
         Gemv::helper::FT_THRESHOLD_ALGORITHM::ASVAR_SIMPLIFIED,
         Gemv::helper::FT_AIV_PIPE_FUSE_TYPE::THRE_FUSED, 
@@ -857,8 +858,8 @@ void Run(Options options) {
     class MatmulAsVarABonAicNoSplitSpecSimplified 
     */
     
-    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecSimplified<
-        BlockMmadABe, BlockMmad, BlockSchedulerFirst, BlockScheduler,
+    using MatmulFTKernel = CubeSelf::Gemm::Kernel::MatmulAsVarABonAicNoSplitSpecSimplifiedPreload<
+        BlockMmadABe, BlockMmadPreload, BlockSchedulerFirst, BlockScheduler,
         BlockFTGemvAIC, BlockFTSum, BlockFTGemvAIV, 
         BlockSliceRed, BlockSliceSum>;
     // Prepare params
