@@ -291,7 +291,7 @@ Results on sampling run iteration:
 <div align="center">
   <img src="./docs/images/AscendFT-GEMM-fp32-FI-bit30-iter.png" alt="./docs/images/AscendFT-GEMM-fp32-FI-bit30-iter.png">
   <br>
-  <em>Figure 8: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (FP32) </em>
+  <em>Figure 8: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (bit 30, FP32) </em>
 </div>
 
 Global results:
@@ -299,7 +299,7 @@ Global results:
 <div align="center">
   <img src="./docs/images/AscendFT-GEMM-fp32-FI-bit30-global.png" alt="./docs/images/AscendFT-GEMM-fp32-FI-bit30-global.png">
   <br>
-  <em>Figure 9: Overview of Global Detection results of AscendFT-GEMM with fault-injection (FP32)</em>
+  <em>Figure 9: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 30, FP32)</em>
 </div>
 
 b) Run the examples ($Bit position: 23 (lowest exponent bit)$):
@@ -313,7 +313,7 @@ Results on sampling run iteration:
 <div align="center">
   <img src="./docs/images/AscendFT-GEMM-fp32-FI-bit23-iter.png" alt="./docs/images/AscendFT-GEMM-fp32-FI-bit23-iter.png">
   <br>
-  <em>Figure 10: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (FP32) </em>
+  <em>Figure 10: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (bit 23, FP32) </em>
 </div>
 
 Global results:
@@ -321,7 +321,7 @@ Global results:
 <div align="center">
   <img src="./docs/images/AscendFT-GEMM-fp32-FI-bit23-global.png" alt="./docs/images/AscendFT-GEMM-fp32-FI-bit23-global.png">
   <br>
-  <em>Figure 11: Overview of Global Detection results of AscendFT-GEMM with fault-injection (FP32)</em>
+  <em>Figure 11: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 23, FP32)</em>
 </div>
 
 
