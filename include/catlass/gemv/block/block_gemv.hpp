@@ -105,6 +105,19 @@ struct BlockFTGemvCENoSplitKPreload {
 
 template <
     class DispatchPolicy,
+    Gemv::helper::FT_THRESHOLD_ALGORITHM ALGO_TYPE_,
+    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE FUSE_TYPE_,
+    Gemv::helper::FT_ENC_TYPE ENC_TYPE_,
+    Gemv::helper::FT_COMP_TYPE COMP_TYPE_,
+    Gemv::helper::FT_ABE_TYPE ABE_TYPE_,
+    class... Args
+>
+struct BlockFTGemvCENoSplitKPreloadFI {
+    static_assert(DEPENDENT_FALSE<DispatchPolicy>, "BlockFTGemvCENoSplitKPreloadFI is not implemented for this DispatchPolicy");
+};
+
+template <
+    class DispatchPolicy,
     class... Args
 >
 struct BlockSumGemv {
@@ -228,6 +241,15 @@ struct BlockSliceKMNSum {
     static_assert(DEPENDENT_FALSE<DispatchPolicy>, "BlockSliceKMNSum is not implemented for this DispatchPolicy");
 };
 
+template <
+    class DispatchPolicy,
+    Gemv::helper::FT_AIV_PIPE_FUSE_TYPE FUSE_TYPE_,
+    class... Args
+>
+struct BlockSliceKMNSumVectorized {
+    static_assert(DEPENDENT_FALSE<DispatchPolicy>, "BlockSliceKMNSumVectorized is not implemented for this DispatchPolicy");
+};
+
 }  // namespace Catlass::Gemv::Block
 
 #include "catlass/gemv/block/block_gemv_aiv.hpp"
@@ -271,4 +293,7 @@ struct BlockSliceKMNSum {
 #include "catlass/gemv/block/block_sum_aiv_ceft_no_splitk_thre_wait_simplified.hpp"
 #include "catlass/gemv/block/block_sum_aiv_ceft_no_splitk_thre_robust_preload.hpp"
 #include "catlass/gemv/block/block_sum_aiv_ceft_no_splitk_thre_simplified_preload.hpp"
+#include "catlass/gemv/block/block_sum_aiv_ceft_no_splitk_thre_robust_preload_FI.hpp"
+// #include "catlass/gemv/block/block_slicekmn_reduce_sum_fused_robust_vec.hpp"
+// #include "catlass/gemv/block/block_slicekmn_reduce_sum_fused_simplified_vec.hpp"
 #endif

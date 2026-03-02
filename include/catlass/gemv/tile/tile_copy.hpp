@@ -344,6 +344,65 @@ template <
     class ArchTag,
     /// MatmulType for A matrix operand
     class AType,
+    /// MatmulType for C matric operand
+    class CType,
+    /// MatmulType type for X vector operand
+    class XType,
+    /// MatmulType type for Y vector operand
+    class YType,
+    /// Output Result operand namely vector Z
+    class ZType,
+    /// MatmulTpe type for Bias operand
+    class BiasType = void
+>
+struct TileCopyGemvThreCompFusedAivFI {
+    using ElementA = typename AType::Element;
+    using ElementC = typename CType::Element;
+
+    using ElementX = typename XType::Element;
+    using ElementY = typename YType::Element;
+
+    using FT_COMP_TYPE = Catlass::Gemv::helper::FT_COMP_TYPE;
+
+    using ElementWork = ElementY;
+
+    using ElementFIID = int32_t;
+    using ElementFIData = ElementA;
+
+    using ElementAccumulator =
+        typename Gemm::helper::ElementAccumulatorSelector<ElementA, ElementA>::ElementAccumulator;
+
+    // the function of aiv
+    using VecCopyGmToUb = Gemv::Tile::VecCopyGmToUB<ArchTag, XType>;
+    static constexpr bool is_atoadd = Gemv::helper::AtomicAddSelector<AType>::value;
+    using VecCopyUbToGm = Gemv::Tile::VecCopyUBToGm<ArchTag, YType,is_atoadd>;
+    using MatrixCopyGmToUb = Gemv::Tile::MatrixCopyGmToUB<ArchTag, AType>;
+
+    using MatrixCopyGmToUbforThre = Gemv::Tile::MatrixCopyGmToUB<ArchTag, CType>;
+
+    using VecCopyGmToUbInY = Gemv::Tile::VecCopyGmToUB<ArchTag, YType>;
+    using VecCopyGmToUbW = Gemv::Tile::VecCopyGmToUB<ArchTag, YType>;
+    
+    using VecCopyUbToGmZ = Gemv::Tile::VecCopyUBToGm<ArchTag, ZType>;
+    using VecCopyUbToGmforThre = Gemv::Tile::VecCopyUBToGm<ArchTag, YType>;
+
+    using WType = Gemm::GemmType<ElementWork, Catlass::layout::VectorLayout>;
+    using VecCopyUbToGmW = Gemv::Tile::VecCopyUBToGm<ArchTag, WType>;
+
+    using FIIndexType = Gemm::GemmType<ElementFIID, Catlass::layout::VectorLayout>;
+    using VecCopyUbToGmforFIIndex = Gemv::Tile::VecCopyUBToGm<ArchTag, FIIndexType, false>;
+
+    using FIDataType = Gemm::GemmType<ElementFIData, Catlass::layout::VectorLayout>;
+    using VecCopyUbToGmforFIData = Gemv::Tile::VecCopyUBToGm<ArchTag, FIDataType, false>;
+
+
+};
+
+template <
+    /// Tag indicating architecture
+    class ArchTag,
+    /// MatmulType for A matrix operand
+    class AType,
     /// MatmulType type for Y vector operand
     class YType,
     /// MatmulTpe type for Bias operand
