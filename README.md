@@ -273,10 +273,10 @@ The abstracted command-line parameter instructions can be expressed as follows:
 | split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,m,n<4096), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
 |inject_row_seed| The random seed used for generating the row indices of injected bit-flip errors in each block|Required|
 |inject_col_seed| The random seed used for generating the row indices of injected bit-flip errors in each block|Required|
-|inject_bit| The bit-position of bit-flip execution (FP32: 31 means sign bit, and 30~23 indicate exponent bits from high to low; BF16: 15 means sign bit, and 14~7 indicate exponent bits from high to low)
+|inject_bit| The bit-position of bit-flip execution (FP32: 31 means sign bit, and 30-23 indicate exponent bits from high to low; BF16: 15 means sign bit, and 14-7 indicate exponent bits from high to low)
 |inject_k_unit| Within each block, at most one error is injected into the L0 buffers after local results have been accumulated along the reduction dimension for each K-unit (e.g., 1024). | Required |
 |inject_num_blk_limit| The upper limit of the number of the injected errors in each block.| Required |
-| device_id | ID of NPU card,0~7 |Optional|
+| device_id | ID of NPU card, 0-7. |Optional|
 
 ##### 1.2.2 FP32 Precision:
 
