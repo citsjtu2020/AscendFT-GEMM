@@ -197,7 +197,7 @@ The abstracted command-line parameter instructions can be expressed as follows:
 | rt| The exponential coefficient in A-ABFT, 8 by default|Required|
 |beta|The base coefficient in A-ABFT, 0 by default| Required|
 |thre_type| The threshold type in A-ABFT, 0 by default|Required|
-|e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.000002|Required|
+|e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.0000022|Required|
 |red_cores| The number of AI cores used when computing the local aggregation results for each block tile of matrix B,  it is recommended to be set as 8|Required|
 | split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,m,n<4096), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
 | device_id | ID of NPU card,0~7 |Optional|
@@ -252,6 +252,7 @@ ${HOME}/AscendFT-GEMM/
 ##### b) Build the executable file:
 
 bash scripts/build.sh 24_FI_test_fp32 (for FP32 precision)
+bash scripts/build.sh 24_FI_test_bf16 (for BF16 precision)
 
 #### 1.2 Run Code
 
@@ -268,7 +269,7 @@ The abstracted command-line parameter instructions can be expressed as follows:
 | rt| The exponential coefficient in A-ABFT, 8 by default|Required|
 |beta|The base coefficient in A-ABFT, 0 by default| Required|
 |thre_type| The threshold type in A-ABFT, 0 by default|Required|
-|e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.000002|Required|
+|e_max|The constant coefficient in the V-ABFT formula, BF16: 0.001; FP32: 0.0000022|Required|
 |red_cores| The number of AI cores used when computing the local aggregation results for each block tile of matrix B,  it is recommended to be set as 8|Required|
 | split_ks |For blocks in Phase II, we now support to apply the Split-K mechanism only on these blocks for further speedup when m and n is kindly small or medium(e.g.,m,n<4096), when adopting local split-K scheme, it is recommended to be set as 2; Otherwise, please set it as 1|Required|
 |inject_row_seed| The random seed used for generating the row indices of injected bit-flip errors in each block|Required|
@@ -284,7 +285,7 @@ a) Run the examples ($Bit position: 30 (highest exponent bit)$):
 
 cd output/bin/
 
-./24_FI_test_fp32 4096 4096 4096 8 0 0 0.000002 8 2 16 16 30 1024 16 0
+./24_FI_test_fp32 4096 4096 4096 8 0 0 0.0000022 8 2 16 16 30 1024 16 0
 
 Results on sampling run iteration:
 
@@ -302,11 +303,11 @@ Global results:
   <em>Figure 9: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 30, FP32)</em>
 </div>
 
-b) Run the examples ($Bit position: 23 (lowest exponent bit)$):
+b) Run the examples (Bit position: 23 (lowest exponent bit)):
 
 cd output/bin/
 
-./24_FI_test_fp32 4096 4096 4096 8 0 0 0.000002 8 2 16 16 23 1024 16 0
+./24_FI_test_fp32 4096 4096 4096 8 0 0 0.0000022 8 2 16 16 23 1024 16 0
 
 Results on sampling run iteration:
 
@@ -322,6 +323,53 @@ Global results:
   <img src="./docs/images/AscendFT-GEMM-fp32-FI-bit23-global.png" alt="./docs/images/AscendFT-GEMM-fp32-FI-bit23-global.png">
   <br>
   <em>Figure 11: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 23, FP32)</em>
+</div>
+
+
+##### 1.2.3 BF16 Precision:
+
+a) Run the examples (Bit position: 14 (highest exponent bit)):
+
+cd output/bin/
+
+./24_FI_test_bf16 4096 4096 4096 8 0 0 0.001 8 2 16 16 14 1024 16 0
+
+Results on sampling run iteration:
+
+<div align="center">
+  <img src="./docs/images/AscendFT-GEMM-bf16-FI-bit14-iter.png" alt="./docs/images/AscendFT-GEMM-bf16-FI-bit14-iter.png">
+  <br>
+  <em>Figure 12: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (bit 14, BF16) </em>
+</div>
+
+Global results:
+
+<div align="center">
+  <img src="./docs/images/AscendFT-GEMM-bf16-FI-bit14-global.png" alt="./docs/images/AscendFT-GEMM-bf16-FI-bit14-global.png">
+  <br>
+  <em>Figure 13: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 14, BF16)</em>
+</div>
+
+b) Run the examples (Bit position: 10 (the fifth highest exponent bit, the lowest high-5-bit position)):
+
+cd output/bin/
+
+./24_FI_test_bf16 4096 4096 4096 8 0 0 0.001 8 2 16 16 10 1024 16 0
+
+Results on sampling run iteration:
+
+<div align="center">
+  <img src="./docs/images/AscendFT-GEMM-bf16-FI-bit10-iter.png" alt="./docs/images/AscendFT-GEMM-bf16-FI-bit10-iter.png">
+  <br>
+  <em>Figure 14: Detection results of AscendFT-GEMM with fault-injection in a sampling run iteration (bit 10, BF16) </em>
+</div>
+
+Global results:
+
+<div align="center">
+  <img src="./docs/images/AscendFT-GEMM-bf16-FI-bit10-global.png" alt="./docs/images/AscendFT-GEMM-bf16-FI-bit10-global.png">
+  <br>
+  <em>Figure 15: Overview of Global Detection results of AscendFT-GEMM with fault-injection (bit 10, BF16)</em>
 </div>
 
 

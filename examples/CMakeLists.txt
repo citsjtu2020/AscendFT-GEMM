@@ -94,6 +94,7 @@ foreach(EXAMPLE
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_small_simple_preload_inited
     18_matmul_ft_abe_aic_thre_no_splitk_asvar_ft_spec_bf16_small_robust_preload_inited
     24_FI_test_fp32
+    24_FI_test_bf16
     )
     add_subdirectory(${EXAMPLE})
 endforeach()
